@@ -15,6 +15,9 @@ public:
     ~Operator_Ext_Pbc();
 
     virtual Operator_Extension* Clone(Operator* op);
+    // sets the phase difference between opposite sides of the periodic structure
+    // Example: periodicity (exp(i * k * r) in x-direction only -> kparallel = {1, 0, 0};
+    void SetKParallel(double kparallel[3]);
 
     virtual bool BuildExtension();
 
@@ -26,16 +29,7 @@ public:
 
     virtual string GetExtensionName() const {return string("PeriodicBoundaryCondition Extension");}
 
-    virtual void ShowStat(ostream &ostr) const;
-
-    virtual void Init();
-    virtual void Reset();
-
-    unsigned int GetVoltCount() const {return Volt_Count;}
-    unsigned int GetVoltCount(int ny) const {return Volt_Count_Dir[ny];}
-
-    unsigned int GetCurrCount() const {return Curr_Count;}
-    unsigned int GetCurrCount(int ny) const {return Curr_Count_Dir[ny];}
+    virtual void ShowStat(ostream &ostr) cons
 
 protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
