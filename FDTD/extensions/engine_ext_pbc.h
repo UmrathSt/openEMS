@@ -17,7 +17,7 @@ public:
     virtual void Apply2Current();
 
 protected:
-    Operator_Ext_Pbc* m_Op_Exc;
+    Operator_Ext_Pbc* m_Op_Pbc;
 };
 
 
