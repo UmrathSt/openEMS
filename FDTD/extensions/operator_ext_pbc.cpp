@@ -52,12 +52,12 @@ bool Operator_Ext_Pbc::IsCylindricalMultiGridSave(bool child) const
 
 void Operator_Ext_Pbc::Initialize()
 {
-    double kparallel[3] = {-1, -1, -1}; // default is no periodicity
+    vector<double> kparallel = {-1, -1, -1}; // default is no periodicity
 }
 
-void Operator_Ext_Pbc::SetKParallel(double kparallel[3])
+void Operator_Ext_Pbc::SetKParallel(vector<double> kpar)
 {
-    double kparallel[3] = kparallel;
+    kparallel = kpar;
 }
 
 bool Operator_Ext_Pbc::BuildExtension()
