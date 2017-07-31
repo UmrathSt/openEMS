@@ -55,8 +55,8 @@ protected:
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;
 
-    FDTD_FLOAT** m_Mur_Coeff_nyP;
-    FDTD_FLOAT** m_Mur_Coeff_nyPP;
+    FDTD_FLOAT** m_Pbc_Coeff_nyP;
+    FDTD_FLOAT** m_Pbc_Coeff_nyPP;
     FDTD_FLOAT** m_volt_nyP; //n+1 direction
     FDTD_FLOAT** m_volt_nyPP; //n+2 direction
 };

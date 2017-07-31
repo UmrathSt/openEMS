@@ -373,7 +373,7 @@ int Operator::SnapLine2Mesh(const double* start, const double* stop, unsigned in
 		return ret;
 
 	//fixme, do we need to do something about start or stop being outside the field domain?
-	//maybe caclulate the intersection point and snap to that?
+    //maybe calculate the intersection point and snap to that?
 	//it seems to work like this as well...
 
 	return ret;
@@ -628,7 +628,7 @@ void Operator::DumpPEC2File(string filename , unsigned int *range)
 #ifdef OUTPUT_IN_DRAWINGUNITS
 	double scaling = 1.0;
 #else
-	double scaling = GetGridDelta();;
+    double scaling = GetGridDelta();
 #endif
 
 	unsigned int start[3] = {0, 0, 0};
