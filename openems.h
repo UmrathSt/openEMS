@@ -149,7 +149,7 @@ protected:
 	//! Read boundary conditions from xml element and apply to FDTD operator
 	bool SetupBoundaryConditions();
 	int m_BC_type[6];
-	unsigned int m_PML_size[6];
+	unsigned int m_PML_size[6]; // [minX, maxX, minY,maxY, minZ, maxZ]
 	double m_Mur_v_ph[6];
 
 	//! Check whether or not the FDTD-Operator has to store material data.

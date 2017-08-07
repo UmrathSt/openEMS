@@ -24,8 +24,8 @@ set(SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_tfsf.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_steadystate.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_steadystate.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_pbc.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_pbc.cpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_pbc.cpp
+#  ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_pbc.cpp
   PARENT_SCOPE
 )
 

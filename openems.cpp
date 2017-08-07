@@ -32,6 +32,7 @@
 #include "FDTD/extensions/operator_ext_lorentzmaterial.h"
 #include "FDTD/extensions/operator_ext_conductingsheet.h"
 #include "FDTD/extensions/operator_ext_steadystate.h"
+// #include "FDTD/extensions/operator_ext_pbc.h"
 #include "FDTD/extensions/engine_ext_steadystate.h"
 #include "FDTD/engine_interface_fdtd.h"
 #include "FDTD/engine_interface_cylindrical_fdtd.h"
@@ -67,7 +68,7 @@ openEMS::openEMS()
 	FDTD_Eng=NULL;
 	Eng_Ext_SSD=NULL;
 	m_CSX=NULL;
-	PA=NULL;
+	PA=NULL; // What's this?
 	CylinderCoords = false;
 	Enable_Dumps = true;
 	DebugMat = false;
@@ -285,6 +286,7 @@ void openEMS::WelcomeScreen()
 	cout << " ---------------------------------------------------------------------- " << endl;
 	cout << " | openEMS " << bits << " -- version " GIT_VERSION << endl;
 	cout << " | (C) 2010-2016 Thorsten Liebig <thorsten.liebig@gmx.de>  GPL license"   << endl;
+    cout << " | 2017 Stefan Umrath <stefan.umrath@dlr.de> | Periodic-Boundaries "      << endl;
 	cout << " ---------------------------------------------------------------------- " << endl;
 	cout << openEMS::GetExtLibsInfo("\t") << endl;
 }
@@ -308,7 +310,8 @@ bool openEMS::SetupBoundaryConditions()
 		}
 		if (m_BC_type[n]==3)
 			FDTD_Op->SetBCSize(n, m_PML_size[n]);
-	}
+	    // I guess here the periodic boundary conditions should be set
+    }
 
 
 	//create the upml
