@@ -30,32 +30,32 @@ Operator_Ext_Pbc::~Operator_Ext_Pbc()
 {
 }
 
-bool Operator_Ext_Pbc::IsCylinderCoordsSave(bool closedAlpha, bool R0_included) const
-{
-    if ((m_ny==0) && (!m_top) && (R0_included || closedAlpha))
-        return false;
-    if ((m_ny==1) && (closedAlpha))
-        return false;
-    return true; // to be modiefied, does not yet make sense
-}
+//bool Operator_Ext_Pbc::IsCylinderCoordsSave(bool closedAlpha, bool R0_included) const
+//{
+//    if ((m_ny==0) && (!m_top) && (R0_included || closedAlpha))
+//        return false;
+//    if ((m_ny==1) && (closedAlpha))
+//        return false;
+//    return true; // to be modiefied, does not yet make sense
+//}
 
-bool Operator_Ext_Pbc::IsCylindricalMultiGridSave(bool child) const
-{
-    if (m_ny==2) //always allow in z-direction
-        return true;
-    if ((m_ny==0) && (m_top) && (!child)) //if top r-direction and is not a child grid allow Mur...
-        return true;
-    //in all other cases this ABC is not save to use in CylindricalMultiGrid
-    return false; // to be modified, does not yet make sense
-}
+//bool Operator_Ext_Pbc::IsCylindricalMultiGridSave(bool child) const
+//{
+//    if (m_ny==2) //always allow in z-direction
+//        return true;
+//    if ((m_ny==0) && (m_top) && (!child)) //if top r-direction and is not a child grid allow Mur...
+//        return true;
+//    //in all other cases this ABC is not save to use in CylindricalMultiGrid
+//    return false; // to be modified, does not yet make sense
+//}
 
 
 void Operator_Ext_Pbc::Initialize()
 {
-    vector<double> kparallel = {-1, -1, -1}; // default is no periodicity
+    kparallel = {-1, -1, -1};
 }
 
-void Operator_Ext_Pbc::SetKParallel(vector<double> kpar)
+void Operator_Ext_Pbc::SetKParallel(std::vector<double> &kpar)
 {
     kparallel = kpar;
 }
@@ -109,7 +109,7 @@ bool Operator_Ext_Pbc::BuildExtension()
                     c0t = m_v_phase * dT;
                 else
                     c0t = __C0__ * dT / sqrt(eps*mue);
-                m_Mur_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
+                m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
 
                 //nPP
                 eps = mat->GetEpsilonWeighted(m_nyPP,coord);
@@ -118,7 +118,7 @@ bool Operator_Ext_Pbc::BuildExtension()
                     c0t = m_v_phase * dT;
                 else
                     c0t = __C0__ * dT / sqrt(eps*mue);
-                m_Mur_Coeff_nyPP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
+                m_Pbc_Coeff_nyPP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
 
             }
             else
@@ -127,12 +127,12 @@ bool Operator_Ext_Pbc::BuildExtension()
                     c0t = m_v_phase * dT;
                 else
                     c0t = __C0__ / sqrt(m_Op->GetBackgroundEpsR()*m_Op->GetBackgroundMueR()) * dT;
-                m_Mur_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
-                m_Mur_Coeff_nyPP[pos[m_nyP]][pos[m_nyPP]] = m_Mur_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]];
+                m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
+                m_Pbc_Coeff_nyPP[pos[m_nyP]][pos[m_nyPP]] = m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]];
             }
-//			cerr << m_Mur_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] << " : " << m_Mur_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] << endl;
+//			cerr << m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] << " : " << m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] << endl;
         }
     }
-//	cerr << "Operator_Ext_Mur_ABC::BuildExtension(): " << m_ny << " @ " << m_LineNr << endl;
+//	cerr << "Operator_Ext_Pbc_ABC::BuildExtension(): " << m_ny << " @ " << m_LineNr << endl;
     return true;
 }

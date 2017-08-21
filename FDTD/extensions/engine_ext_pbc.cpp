@@ -1,7 +1,13 @@
 /* engine extension for periodic boundary conditions
 */
 #include "engine_ext_pbc.h"
+#include "operator_ext_pbc.h"
 #include "operator_extension.h"
+#include "FDTD/engine.h"
+#include "FDTD/engine_sse.h"
+#include "tools/array_ops.h"
+#include "tools/useful.h"
+#include "operator_ext_excitation.h"
 
 #include "FDTD/engine.h"
 
