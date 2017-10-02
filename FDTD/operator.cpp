@@ -913,8 +913,8 @@ void Operator::CleanupMaterialStorage()
 }
 
 double Operator::GetDiscMaterial(int type, int n, const unsigned int pos[3]) const
-{
-	switch (type)
+{ // Get material information type = 0, 1, 2, 3 means Re(epsilon), conductivity
+    switch (type)// Re(mu), magnetic conductivity
 	{
 	case 0:
 		if (m_epsR==0)

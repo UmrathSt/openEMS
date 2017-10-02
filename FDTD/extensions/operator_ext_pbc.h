@@ -29,7 +29,7 @@ public:
 
     virtual string GetExtensionName() const {return string("PeriodicBoundaryCondition Extension");}
 
-    virtual void ShowStat(ostream &ostr) const;
+
 
 protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
@@ -42,7 +42,7 @@ protected:
 
     double m_v_phase;
 
-    std::vector<double> kparallel(3);
+    vector<double> kparallel = {-1, -1, -1};
 
     unsigned int m_numLines[2];
 

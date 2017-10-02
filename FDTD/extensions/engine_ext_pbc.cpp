@@ -22,11 +22,10 @@ Engine_Ext_Pbc::Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext) : Engine_Extension(op_e
     m_LineNr = m_Op_Pbc->m_LineNr;
     m_LineNr_Shift = m_Op_Pbc->m_LineNr_Shift;
 
+    FDTD_FLOAT**** volt_im;
+    FDTD_FLOAT**** curr_im;
     m_Pbc_Coeff_nyP = m_Op_Pbc->m_Pbc_Coeff_nyP;
     m_Pbc_Coeff_nyPP = m_Op_Pbc->m_Pbc_Coeff_nyPP;
-
-    m_volt_nyP = Create2DArray<FDTD_FLOAT>(m_numLines);
-    m_volt_nyPP = Create2DArray<FDTD_FLOAT>(m_numLines);
 
     // ignore if some excitation is on the pbc
     // region
@@ -35,10 +34,10 @@ Engine_Ext_Pbc::Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext) : Engine_Extension(op_e
 
 Engine_Ext_Pbc::~Engine_Ext_Pbc()
 {
-    Delete2DArray(m_volt_nyP,m_numLines);
-    m_volt_nyP = NULL;
-    Delete2DArray(m_volt_nyPP,m_numLines);
-    m_volt_nyPP = NULL;
+    Delete_N_3DArray(volt_im,m_numLines);
+    volt_im=NULL;
+    Delete_N_3DArray(curr_im,m_numLines);
+    curr_im=NULL;
 }
 
 void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)

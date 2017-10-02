@@ -55,10 +55,12 @@ protected:
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;
 
+    FDTD_FLOAT**** volt_im; // imaginary part of the complex voltage
+    FDTD_FLOAT**** curr_im; // imaginary part of the complex current
     FDTD_FLOAT** m_Pbc_Coeff_nyP;
     FDTD_FLOAT** m_Pbc_Coeff_nyPP;
-    FDTD_FLOAT** m_volt_nyP; //n+1 direction
-    FDTD_FLOAT** m_volt_nyPP; //n+2 direction
+    FDTD_FLOAT** m_volt_nyPP;
+    FDTD_FLOAT** m_volt_nyP;
 };
 
 #endif // ENGINE_EXT_PBC_H

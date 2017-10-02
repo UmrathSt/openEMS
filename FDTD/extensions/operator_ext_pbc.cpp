@@ -49,6 +49,10 @@ Operator_Ext_Pbc::~Operator_Ext_Pbc()
 //    return false; // to be modified, does not yet make sense
 //}
 
+Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
+{
+    Initialize();
+}
 
 void Operator_Ext_Pbc::Initialize()
 {
@@ -58,6 +62,18 @@ void Operator_Ext_Pbc::Initialize()
 void Operator_Ext_Pbc::SetKParallel(std::vector<double> &kpar)
 {
     kparallel = kpar;
+}
+
+Engine_Extension* Operator_Ext_Pbc::CreateEngineExtention()
+{
+    Engine_Ext_Pbc* eng_ext_pbc = new Engine_Ext_Pbc(this);
+    return eng_ext_pbc;
+}
+Operator_Extension* Operator_Ext_Pbc::Clone(Operator* op)
+{
+    if (dynamic_cast<Operator_Ext_Pbc*>(this)==NULL)
+        return NULL;
+    return new Operator_Ext_Pbc(op, this);
 }
 
 bool Operator_Ext_Pbc::BuildExtension()
