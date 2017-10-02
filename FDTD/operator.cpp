@@ -948,7 +948,7 @@ void Operator::Calc_ECOperatorPos(int n, unsigned int* pos)
 	double G = EC_G[n][i];
 	if (C>0)
 	{
-		SetVV(n,pos[0],pos[1],pos[2], (1.0-dT*G/2.0/C)/(1.0+dT*G/2.0/C) );
+        SetVV(n,pos[0],pos[1],pos[2], (1.0-dT*G/2.0/C)/(1.0+dT*G/2.0/C) ); // hier wurde 2C ausgeklammert
 		SetVI(n,pos[0],pos[1],pos[2], (dT/C)/(1.0+dT*G/2.0/C) );
 	}
 	else

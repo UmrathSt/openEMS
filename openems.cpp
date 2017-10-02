@@ -135,7 +135,7 @@ void openEMS::showUsage()
 	cout << "\t\t--engine=sse\t\t\tengine using sse vector extensions" << endl;
 	cout << "\t\t--engine=sse-compressed\t\tengine using compressed operator + sse vector extensions" << endl;
 #ifdef MPI_SUPPORT
-	cout << "\t\t--engine=MPI\t\t\tengine using compressed operator + sse vector extensions + MPI parallel processing" << endl;
+    cout << "\t\t--engine=MPI\t\t\tengine using compressed operator + sse vector extensions + MPI parallel processing" << endl;
 	cout << "\t\t--engine=multithreaded\t\tengine using compressed operator + sse vector extensions + MPI + multithreading" << endl;
 #else
 	cout << "\t\t--engine=multithreaded\t\tengine using compressed operator + sse vector extensions + multithreading" << endl;
@@ -310,7 +310,10 @@ bool openEMS::SetupBoundaryConditions()
 		}
 		if (m_BC_type[n]==3)
 			FDTD_Op->SetBCSize(n, m_PML_size[n]);
-	    // I guess here the periodic boundary conditions should be set
+        // I guess here the periodic boundary conditions should be set
+        // if (m_BC_type[n] == PBC_NUMBER
+        // 		Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_op);
+        // 		FDTD_Op->AddExtension(op_ext_pbc);
     }
 
 
