@@ -59,7 +59,7 @@ void Operator_Ext_Pbc::Initialize()
     kparallel = {-1, -1, -1};
 }
 
-void Operator_Ext_Pbc::SetKParallel(std::vector<double> &kpar)
+void Operator_Ext_Pbc::SetKParallel(double *kpar)
 {
     kparallel = kpar;
 }
@@ -88,9 +88,9 @@ bool Operator_Ext_Pbc::BuildExtension()
     pos[m_ny] = m_LineNr;
     double delta = fabs(m_Op->GetEdgeLength(m_ny,pos));
     double coord[] = {0,0,0};
-    coord[0] = m_Op->GetDiscLine(0,pos[0]);
-    coord[1] = m_Op->GetDiscLine(1,pos[1]);
-    coord[2] = m_Op->GetDiscLine(2,pos[2]);
+    coord[0] = m_Op->GetDiscLine(0,pos[0]); // x - gridlines
+    coord[1] = m_Op->GetDiscLine(1,pos[1]); // y - gridlines
+    coord[2] = m_Op->GetDiscLine(2,pos[2]); // z - gridlines
 
     double eps,mue;
     double c0t;
@@ -104,51 +104,7 @@ bool Operator_Ext_Pbc::BuildExtension()
     posBB[m_ny]  =pos[m_ny];
     posBB[m_nyPP]=-1;
 
-    for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[0]; ++pos[m_nyP])
-    {
-        posBB[m_nyP]=pos[m_nyP];
-        vector<CSPrimitives*> vPrims = m_Op->GetPrimitivesBoundBox(posBB[0], posBB[1], posBB[2], CSProperties::MATERIAL);
-        coord[m_nyP] = m_Op->GetDiscLine(m_nyP,pos[m_nyP]);
-        for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[1]; ++pos[m_nyPP])
-        {
-            coord[m_nyPP] = m_Op->GetDiscLine(m_nyPP,pos[m_nyPP]);
-//			CSProperties* prop = m_Op->GetGeometryCSX()->GetPropertyByCoordPriority(coord, CSProperties::MATERIAL, false);
-            CSProperties* prop = m_Op->GetGeometryCSX()->GetPropertyByCoordPriority(coord, vPrims, false);
-            if (prop)
-            {
-                CSPropMaterial* mat = prop->ToMaterial();
 
-                //nP
-                eps = mat->GetEpsilonWeighted(m_nyP,coord);
-                mue = mat->GetMueWeighted(m_nyP,coord);
-                if (m_v_phase>0.0)
-                    c0t = m_v_phase * dT;
-                else
-                    c0t = __C0__ * dT / sqrt(eps*mue);
-                m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
-
-                //nPP
-                eps = mat->GetEpsilonWeighted(m_nyPP,coord);
-                mue = mat->GetMueWeighted(m_nyPP,coord);
-                if (m_v_phase>0.0)
-                    c0t = m_v_phase * dT;
-                else
-                    c0t = __C0__ * dT / sqrt(eps*mue);
-                m_Pbc_Coeff_nyPP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
-
-            }
-            else
-            {
-                if (m_v_phase>0.0)
-                    c0t = m_v_phase * dT;
-                else
-                    c0t = __C0__ / sqrt(m_Op->GetBackgroundEpsR()*m_Op->GetBackgroundMueR()) * dT;
-                m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] = (c0t - delta) / (c0t + delta);
-                m_Pbc_Coeff_nyPP[pos[m_nyP]][pos[m_nyPP]] = m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]];
-            }
-//			cerr << m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] << " : " << m_Pbc_Coeff_nyP[pos[m_nyP]][pos[m_nyPP]] << endl;
-        }
-    }
 //	cerr << "Operator_Ext_Pbc_ABC::BuildExtension(): " << m_ny << " @ " << m_LineNr << endl;
     return true;
 }

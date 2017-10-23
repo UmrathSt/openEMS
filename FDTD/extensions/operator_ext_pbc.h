@@ -17,7 +17,7 @@ public:
     virtual Operator_Extension* Clone(Operator* op);
     // sets the phase difference between opposite sides of the periodic structure
     // Example: periodicity (exp(i * k * r) in x-direction only -> kparallel = {1, 0, 0};
-    void SetKParallel(std::vector<double> &kparallel);
+    void SetKParallel(double &kparallel);
 
     virtual bool BuildExtension();
 
@@ -42,12 +42,10 @@ protected:
 
     double m_v_phase;
 
-    vector<double> kparallel = {-1, -1, -1};
+    double kparallel[3] = {-1, -1, -1};
 
-    unsigned int m_numLines[2];
+    unsigned int m_numLines[3];
 
-    FDTD_FLOAT** m_Pbc_Coeff_nyP;
-    FDTD_FLOAT** m_Pbc_Coeff_nyPP;
 };
 
 

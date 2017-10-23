@@ -14,21 +14,10 @@
 Engine_Ext_Pbc::Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext) : Engine_Extension(op_ext)
 {
     m_Op_Pbc = op_ext;
-    m_numLines[0] = m_Op_Pbc->m_numLines[0];
-    m_numLines[1] = m_Op_Pbc->m_numLines[1];
-    m_ny = m_Op_Pbc->m_ny;
-    m_nyP = m_Op_Pbc->m_nyP;
-    m_nyPP = m_Op_Pbc->m_nyPP;
-    m_LineNr = m_Op_Pbc->m_LineNr;
-    m_LineNr_Shift = m_Op_Pbc->m_LineNr_Shift;
-
-    FDTD_FLOAT**** volt_im;
-    FDTD_FLOAT**** curr_im;
-    m_Pbc_Coeff_nyP = m_Op_Pbc->m_Pbc_Coeff_nyP;
-    m_Pbc_Coeff_nyPP = m_Op_Pbc->m_Pbc_Coeff_nyPP;
-
-    // ignore if some excitation is on the pbc
-    // region
+    for (int n=0; n<3; ++n)
+        m_numLines[n] = m_Op_Pbc->GetNumberOfLines(n, true);
+    volt_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // imaginary parts of
+    curr_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // voltage/current
     SetNumberOfThreads(1);
 }
 

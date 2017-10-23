@@ -114,7 +114,7 @@ void Engine::UpdateVoltages(unsigned int startX, unsigned int numX)
 	//voltage updates
 	for (unsigned int posX=0; posX<numX; ++posX)
 	{
-		shift[0]=pos[0];
+        shift[0]=pos[0]; // 1 for all but the zeroth gird line
 		for (pos[1]=0; pos[1]<numLines[1]; ++pos[1])
 		{
 			shift[1]=pos[1];
