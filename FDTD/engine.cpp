@@ -49,7 +49,7 @@ Engine::~Engine()
 void Engine::Init()
 {
 	numTS = 0;
-	volt = Create_N_3DArray<FDTD_FLOAT>(numLines);
+    volt = Create_N_3DArray<FDTD_FLOAT>(numLines); // 3D array of floats initialized to zero of shape: (3,numLines[0], numLines[1], numLines[3])
 	curr = Create_N_3DArray<FDTD_FLOAT>(numLines);
 
 	InitExtensions();
