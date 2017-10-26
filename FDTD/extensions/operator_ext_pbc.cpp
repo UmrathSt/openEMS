@@ -29,6 +29,7 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Ope
 {
     Initialize();
     setKParallel(op_ext->kparallel);
+
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
