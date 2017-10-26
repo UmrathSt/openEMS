@@ -32,7 +32,7 @@
 #include "FDTD/extensions/operator_ext_lorentzmaterial.h"
 #include "FDTD/extensions/operator_ext_conductingsheet.h"
 #include "FDTD/extensions/operator_ext_steadystate.h"
-// #include "FDTD/extensions/operator_ext_pbc.h"
+#include "FDTD/extensions/operator_ext_pbc.h"
 #include "FDTD/extensions/engine_ext_steadystate.h"
 #include "FDTD/engine_interface_fdtd.h"
 #include "FDTD/engine_interface_cylindrical_fdtd.h"
@@ -314,6 +314,11 @@ bool openEMS::SetupBoundaryConditions()
         // if (m_BC_type[n] == PBC_NUMBER
         // 		Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_op);
         // 		FDTD_Op->AddExtension(op_ext_pbc);
+        if (m_BC_type[n] == 4){
+
+
+        }
+        // --------------------
     }
 
 
@@ -743,7 +748,8 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 	{
 		cerr << "Can't read openEMS boundary cond Settings... " << endl;
 		exit(-3);
-	}
+    }
+
 
 //	const char* tmp = BC->Attribute("PML_Grading");
 //	string pml_gradFunc;
@@ -773,6 +779,8 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 				this->Set_BC_Type(n, 1);
 			else if (s_bc=="MUR")
 				this->Set_BC_Type(n, 2);
+            else if (s_bc=="PBC")
+                this->Set_BC_Type(n, 4);
 			else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
 				this->Set_BC_PML(n, atoi(s_bc.c_str()+4));
 			else
@@ -1176,7 +1184,7 @@ void openEMS::RunFDTD()
 				DumpRunStatistics(__OPENEMS_RUN_STAT_FILE__, t_run, currTS, speed, currE);
 		}
 	}
-	if ((change>endCrit) && (FDTD_Op->GetExcitationSignal()->GetExciteType()==0))
+    if ((change>endCrit) && (FDTD_Op->GetExcitationSignal()->GetExciteType()==0)) // ExciteTyp() == 0 means steady-state?
 		cerr << "RunFDTD: Warning: Max. number of timesteps was reached before the end-criteria of -" << fabs(10.0*log10(endCrit)) << "dB was reached... " << endl << \
 				"\tYou may want to choose a higher number of max. timesteps... " << endl;
 

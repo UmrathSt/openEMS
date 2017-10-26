@@ -150,8 +150,8 @@ protected:
 	bool SetupBoundaryConditions();
 	int m_BC_type[6];
 	unsigned int m_PML_size[6]; // [minX, maxX, minY,maxY, minZ, maxZ]
-	double m_Mur_v_ph[6];
-
+    double m_Mur_v_ph[6];
+    double k_transverse[3]; // transverse wave vector for PBC
 	//! Check whether or not the FDTD-Operator has to store material data.
 	bool SetupMaterialStorages();
 
