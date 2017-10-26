@@ -65,6 +65,8 @@ Operator_Extension* Operator_Ext_Pbc::Clone(Operator* op)
 
 bool Operator_Ext_Pbc::BuildExtension()
 {
+    for(int i=0; i<3; ++i)
+        kparallel[i] = m_Op->m_k_PBC[i];
     unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
     if (kparallel[0] == -1 && kparallel[1] == -1 && kparallel[2] == -1)

@@ -10,10 +10,10 @@ class Operator_Ext_Pbc : public Operator_Extension
 public:
     Operator_Ext_Pbc(Operator* op);
     ~Operator_Ext_Pbc();
-    inline virtual FDTD_FLOAT GetVV(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->vv[n][x][y][z]; }
-    inline virtual FDTD_FLOAT GetVI(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->vi[n][x][y][z]; }
-    inline virtual FDTD_FLOAT GetIV(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->iv[n][x][y][z]; }
-    inline virtual FDTD_FLOAT GetII(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->ii[n][x][y][z]; }
+    inline virtual FDTD_FLOAT GetVV(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return this->m_Op->GetVV(n,x,y,z); };
+    inline virtual FDTD_FLOAT GetVI(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return this->m_Op->GetVI(n,x,y,z); };
+    inline virtual FDTD_FLOAT GetIV(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return this->m_Op->GetIV(n,x,y,z); };
+    inline virtual FDTD_FLOAT GetII(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return this->m_Op->GetII(n,x,y,z); };
     virtual Operator_Extension* Clone(Operator* op);
     // sets the phase difference between opposite sides of the periodic structure
     // Example: periodicity (exp(i * k * r) in x-direction only -> kparallel = {1, 0, 0};
@@ -31,7 +31,7 @@ public:
 protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
     void Initialize();
-    float kparallel[3];
+    FDTD_FLOAT kparallel[3];
     unsigned int m_numLines[3];
 };
 
