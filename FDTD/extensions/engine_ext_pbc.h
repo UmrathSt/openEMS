@@ -36,31 +36,31 @@ public:
 
     virtual void DoPreVoltageUpdates() {Engine_Ext_Pbc::DoPreVoltageUpdates(0);}
     virtual void DoPreVoltageUpdates(int threadID);
+
     virtual void DoPostVoltageUpdates() {Engine_Ext_Pbc::DoPostVoltageUpdates(0);}
     virtual void DoPostVoltageUpdates(int threadID);
+
+    virtual void DoPostCurrentUpdates() {Engine_Ext_Pbc::DoPostCurrentUpdates(0);};
+    virtual void DoPostCurrentUpdates(int threadID);
+
     virtual void Apply2Voltages() {Engine_Ext_Pbc::Apply2Voltages(0);}
     virtual void Apply2Voltages(int threadID);
-
 protected:
     Operator_Ext_Pbc* m_Op_Pbc;
-    inline bool IsActive() {if (m_Eng->GetNumberOfTimesteps()<m_start_TS) return false; return true;}
+    inline bool IsActive() {if (m_Eng->GetNumberOfTimesteps()<m_start_TS) return false; return true;};
     unsigned int m_start_TS;
 
     int m_ny;
     int m_nyP,m_nyPP;
     unsigned int m_LineNr;
     int m_LineNr_Shift;
-    unsigned int m_numLines[2];
+    unsigned int m_numLines[3];
 
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;
 
     FDTD_FLOAT**** volt_im; // imaginary part of the complex voltage
     FDTD_FLOAT**** curr_im; // imaginary part of the complex current
-    FDTD_FLOAT** m_Pbc_Coeff_nyP;
-    FDTD_FLOAT** m_Pbc_Coeff_nyPP;
-    FDTD_FLOAT** m_volt_nyPP;
-    FDTD_FLOAT** m_volt_nyP;
 };
 
 #endif // ENGINE_EXT_PBC_H

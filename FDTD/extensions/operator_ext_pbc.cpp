@@ -25,43 +25,29 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
 }
-
-Operator_Ext_Pbc::~Operator_Ext_Pbc()
-{
-}
-
-//bool Operator_Ext_Pbc::IsCylinderCoordsSave(bool closedAlpha, bool R0_included) const
-//{
-//    if ((m_ny==0) && (!m_top) && (R0_included || closedAlpha))
-//        return false;
-//    if ((m_ny==1) && (closedAlpha))
-//        return false;
-//    return true; // to be modiefied, does not yet make sense
-//}
-
-//bool Operator_Ext_Pbc::IsCylindricalMultiGridSave(bool child) const
-//{
-//    if (m_ny==2) //always allow in z-direction
-//        return true;
-//    if ((m_ny==0) && (m_top) && (!child)) //if top r-direction and is not a child grid allow Mur...
-//        return true;
-//    //in all other cases this ABC is not save to use in CylindricalMultiGrid
-//    return false; // to be modified, does not yet make sense
-//}
-
-Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
+Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
+    setKParallel(op_ext->kparallel);
 }
+Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
 void Operator_Ext_Pbc::Initialize()
 {
-    kparallel = {-1, -1, -1};
+
+    m_numLines[0]= m_Op->GetNumberOfLines(0);
+    m_numLines[1]= m_Op->GetNumberOfLines(1);
+    m_numLines[2]= m_Op->GetNumberOfLines(2);
+    for(int i = 0; i<3; ++i){
+        kparallel[i] = -1;
+    }
 }
 
-void Operator_Ext_Pbc::SetKParallel(double *kpar)
+void Operator_Ext_Pbc::setKParallel(float *kpar)
 {
-    kparallel = kpar;
+    kparallel[0] = kpar[0];
+    kparallel[1] = kpar[1];
+    kparallel[2] = kpar[2];
 }
 
 Engine_Extension* Operator_Ext_Pbc::CreateEngineExtention()
@@ -78,33 +64,12 @@ Operator_Extension* Operator_Ext_Pbc::Clone(Operator* op)
 
 bool Operator_Ext_Pbc::BuildExtension()
 {
+    unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
+
     if (kparallel[0] == -1 && kparallel[1] == -1 && kparallel[2] == -1)
     {
         cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Extension not initialized! Use SetKParallel!! Abort build!!" << endl;
         return false;
     }
-    double dT = m_Op->GetTimestep();
-    unsigned int pos[] = {0,0,0};
-    pos[m_ny] = m_LineNr;
-    double delta = fabs(m_Op->GetEdgeLength(m_ny,pos));
-    double coord[] = {0,0,0};
-    coord[0] = m_Op->GetDiscLine(0,pos[0]); // x - gridlines
-    coord[1] = m_Op->GetDiscLine(1,pos[1]); // y - gridlines
-    coord[2] = m_Op->GetDiscLine(2,pos[2]); // z - gridlines
-
-    double eps,mue;
-    double c0t;
-
-    if (m_LineNr==0)
-        coord[m_ny] = m_Op->GetDiscLine(m_ny,pos[m_ny]) + delta/2 / m_Op->GetGridDelta();
-    else
-        coord[m_ny] = m_Op->GetDiscLine(m_ny,pos[m_ny]) - delta/2 / m_Op->GetGridDelta();
-
-    int posBB[3];
-    posBB[m_ny]  =pos[m_ny];
-    posBB[m_nyPP]=-1;
-
-
-//	cerr << "Operator_Ext_Pbc_ABC::BuildExtension(): " << m_ny << " @ " << m_LineNr << endl;
     return true;
 }
