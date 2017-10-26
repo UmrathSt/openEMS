@@ -315,8 +315,8 @@ bool openEMS::SetupBoundaryConditions()
         // 		Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_op);
         // 		FDTD_Op->AddExtension(op_ext_pbc);
         if (m_BC_type[n] == 4){
-
-
+            Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
+            FDTD_Op->AddExtension(op_ext_pbc);
         }
         // --------------------
     }
