@@ -55,16 +55,16 @@ void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
             {
                 //do the updates here
                 //for x
-                volt_im[0][pos[0]][pos[1]][pos[2]] *= m_Eng->GetVV(0,pos[0],pos[1],pos[2]);
-                volt_im[0][pos[0]][pos[1]][pos[2]] += m_Eng->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im[2][pos[0]][pos[1]+1][pos[2]] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]+1]);
+                volt_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(0,pos[0],pos[1],pos[2]);
+                volt_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im[2][pos[0]][pos[1]+1][pos[2]] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]+1]);
 
                 //for y
-                volt_im[1][pos[0]][pos[1]][pos[2]] *= m_Eng->GetVV(1,pos[0],pos[1],pos[2]);
-                volt_im[1][pos[0]][pos[1]][pos[2]] += m_Eng->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]+1] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im[2][pos[0]+1][pos[1]][pos[2]]);
+                volt_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(1,pos[0],pos[1],pos[2]);
+                volt_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]+1] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im[2][pos[0]+1][pos[1]][pos[2]]);
 
                 //for z
-                volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Eng->GetVV(2,pos[0],pos[1],pos[2]);
-                volt_im[2][pos[0]][pos[1]][pos[2]] += m_Eng->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im[1][pos[0]+1][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im[0][pos[0]][pos[1]+1][pos[2]]);
+                volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(2,pos[0],pos[1],pos[2]);
+                volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im[1][pos[0]+1][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im[0][pos[0]][pos[1]+1][pos[2]]);
             }
         }
     }
@@ -84,16 +84,16 @@ void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
             {
                 //do the updates here
                 //for x
-                curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Eng->GetII(0,pos[0],pos[1],pos[2]);
-                curr_im[0][pos[0]][pos[1]][pos[2]] += m_Eng->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im[2][pos[0]][pos[1]+1][pos[2]] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]+1]);
+                curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
+                curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im[2][pos[0]][pos[1]+1][pos[2]] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]+1]);
 
                 //for y
-                curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Eng->GetII(1,pos[0],pos[1],pos[2]);
-                curr_im[1][pos[0]][pos[1]][pos[2]] += m_Eng->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]+1][pos[1]][pos[2]]);
+                curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
+                curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]+1][pos[1]][pos[2]]);
 
                 //for z
-                curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Eng->GetII(2,pos[0],pos[1],pos[2]);
-                curr_im[2][pos[0]][pos[1]][pos[2]] += m_Eng->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im[1][pos[0]+1][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]+1][pos[2]]);
+                curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
+                curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im[1][pos[0]+1][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]+1][pos[2]]);
             }
         }
     }
