@@ -27,7 +27,7 @@ Engine_Ext_Dispersive::Engine_Ext_Dispersive(Operator_Ext_Dispersive* op_ext_dis
 	volt_ADE = new FDTD_FLOAT**[order];
 	for (int o=0;o<order;++o)
 	{
-		curr_ADE[o] = new FDTD_FLOAT*[3];
+        curr_ADE[o] = new FDTD_FLOAT*[3]; // float array of shape (order, 3)
 		volt_ADE[o] = new FDTD_FLOAT*[3];
 		for (int n=0; n<3; ++n)
 		{

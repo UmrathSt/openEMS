@@ -28,6 +28,7 @@ class Operator_Ext_Pbc;
 
 class Engine_Ext_Pbc : public Engine_Extension
 {
+    friend class Engine;
 public:
     Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext);
     virtual ~Engine_Ext_Pbc();
@@ -45,6 +46,7 @@ public:
 
     virtual void Apply2Voltages() {Engine_Ext_Pbc::Apply2Voltages(0);}
     virtual void Apply2Voltages(int threadID);
+
 protected:
     Operator_Ext_Pbc* m_Op_Pbc;
     inline bool IsActive() {if (m_Eng->GetNumberOfTimesteps()<m_start_TS) return false; return true;};

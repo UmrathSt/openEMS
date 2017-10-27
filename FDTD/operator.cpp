@@ -1098,17 +1098,17 @@ void Operator::ApplyElectricBC(bool* dirs)
 		{
 			for (pos[nPP]=0; pos[nPP]<numLines[nPP]; ++pos[nPP])
 			{
-				if (dirs[2*n])
+                if (dirs[2*n]) // is lower x, y, z set to PEC, then set the parallel field components to zero
 				{
 					// set to PEC
 					pos[n] = 0;
-					SetVV(nP, pos[0],pos[1],pos[2], 0 );
-					SetVI(nP, pos[0],pos[1],pos[2], 0 );
-					SetVV(nPP,pos[0],pos[1],pos[2], 0 );
-					SetVI(nPP,pos[0],pos[1],pos[2], 0 );
+                    SetVV(nP, pos[0],pos[1],pos[2], 0 ); // nP, nPP are the components parallel to direction "n"
+                    SetVI(nP, pos[0],pos[1],pos[2], 0 ); // component i. e. v_x, v_y ... others are coordinates x, y, z
+                    SetVV(nPP,pos[0],pos[1],pos[2], 0 ); // if n = 0, meaning x, the nP = 1%3 and nPP = 2%3 directions are
+                    SetVI(nPP,pos[0],pos[1],pos[2], 0 ); // parallel and thus those compoenents have to be set to zero for PEC
 				}
 
-				if (dirs[2*n+1])
+                if (dirs[2*n+1]) // is upper x, y, z set to PEC, then set the parallel field components to zero
 				{
 					// set to PEC
 					pos[n] = numLines[n]-1;

@@ -42,16 +42,15 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 }
 
 void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
-    cout << "this is DoPostVoltageUpdates of engine_ext_pbc " << endl;
-    cout << "thread id = " << threadID << endl;
-    cout << "numLines[0] = " << this->m_numLines[0] << endl;
+    cout << "this is DoPostVoltageUpdates of the extension " <<  GetExtensionName() << endl;
     unsigned int pos[3];
     bool shift[3];
-    for (pos[0]=0; pos[0]<m_numLines[0]; ++pos[0])
+
+    for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0])
     {
-        for (pos[1]=0; pos[1]<m_numLines[1]; ++pos[1])
+        for (pos[1]=0; pos[1]<m_numLines[1]-1; ++pos[1])
         {
-            for (pos[2]=0; pos[2]<m_numLines[2]; ++pos[2])
+            for (pos[2]=0; pos[2]<m_numLines[2]-1; ++pos[2])
             {
                 //do the updates here
                 //for x
@@ -64,19 +63,21 @@ void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
 
                 //for z
                 volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(2,pos[0],pos[1],pos[2]);
-                volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im[1][pos[0]+1][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im[0][pos[0]][pos[1]+1][pos[2]]);
+                volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im[1][pos[0]+1][pos[1]][pos[2]]- curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im[0][pos[0]][pos[1]+1][pos[2]]);
+
             }
         }
     }
+    cout << "k_parallel is " << m_Op_Pbc->kparallel[0] << endl;
 
 };
+
 void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
-    cout << "this is DoPostVoltageUpdates of engine_ext_pbc " << endl;
-    cout << "thread id = " << threadID << endl;
-    cout << "numLines[0] = " << this->m_numLines[0] << endl;
+    cout << "this is DoPostCurrentUpdates of the extension " <<  GetExtensionName() << endl;
     unsigned int pos[3];
     bool shift[3];
-    for (pos[0]=0; pos[0]<m_numLines[0]; ++pos[0])
+
+    for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0])
     {
         for (pos[1]=0; pos[1]<m_numLines[1]-1; ++pos[1])
         {
@@ -89,15 +90,15 @@ void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
 
                 //for y
                 curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
-                curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]+1][pos[1]][pos[2]]);
+                curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]+1][pos[1]][pos[2]]);
 
                 //for z
                 curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
-                curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im[1][pos[0]+1][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]+1][pos[2]]);
+                curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im[1][pos[0]+1][pos[1]][pos[2]]- volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]+1][pos[2]]);
+
             }
         }
     }
-
 };
 
 void Engine_Ext_Pbc::DoPreVoltageUpdates(int threadID){};

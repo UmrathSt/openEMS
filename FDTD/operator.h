@@ -39,9 +39,9 @@ class Operator : public Operator_Base
 	friend class Operator_Ext_Excitation;
 	friend class Operator_Ext_UPML;
 	friend class Operator_Ext_Cylinder;
-    // friend class Operator_Ext_Pbc;
+    friend class Operator_Ext_Pbc;
 public:
-	enum DebugFlags {None=0,debugMaterial=1,debugOperator=2,debugPEC=4};
+    enum DebugFlags {None=0,debugMaterial=1,debugOperator=2,debugPEC=4};
 
 	enum MatAverageMethods {QuarterCell=0, CentralCell=1};
 
@@ -211,6 +211,7 @@ protected:
 	double m_TimeStepFactor;
 	virtual double CalcTimestep();
 	double opt_dT;
+    FDTD_FLOAT m_k_PBC[3];
 	bool m_InvaildTimestep;
 	string m_Used_TS_Name;
 

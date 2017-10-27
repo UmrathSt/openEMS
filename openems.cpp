@@ -642,6 +642,12 @@ int openEMS::Get_BC_Type(int idx)
 	return m_BC_type[idx];
 }
 
+void openEMS::Set_BC_PBC(int idx, FDTD_FLOAT k_pbc)
+{
+    m_BC_type[idx] = 4;
+    m_k_PBC[idx] = k_pbc;
+}
+
 void openEMS::Set_BC_PML(int idx, unsigned int size)
 {
 	if ((idx<0) || (idx>5))
@@ -758,6 +764,13 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 
 	string bound_names[] = {"xmin","xmax","ymin","ymax","zmin","zmax"};
 	string s_bc;
+    dhelp = 0;
+    string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
+    for(int i=0; i<3; ++i)
+    {
+        if (FDTD_Opts->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS)
+            Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
+    }
 	for (int n=0; n<6; ++n)
 	{
 		int EC = BC->QueryIntAttribute(bound_names[n].c_str(),&ihelp);
@@ -844,6 +857,10 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 	if (FDTD_Opts->QueryDoubleAttribute("TimeStepFactor",&dhelp)==TIXML_SUCCESS)
 		this->SetTimeStepFactor(dhelp);
 	return true;
+}
+void openEMS::Set_PBC_k(int n, FDTD_FLOAT k_pbc)
+{
+    m_k_PBC[n] = k_pbc;
 }
 
 void openEMS::SetGaussExcite(double f0, double fc)

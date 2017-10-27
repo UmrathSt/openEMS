@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <vector>
+#include "tools/constants.h"
 
 #define __OPENEMS_STAT_FILE__ "openEMS_stats.txt"
 #define __OPENEMS_RUN_STAT_FILE__ "openEMS_run_stats.txt"
@@ -80,7 +81,10 @@ public:
 	int Get_BC_Type(int idx);
 	void Set_BC_PML(int idx, unsigned int size);
 	int Get_PML_Size(int idx);
-	void Set_Mur_PhaseVel(int idx, double val);
+    FDTD_FLOAT Get_PBC_k(FDTD_FLOAT* k_pbc);
+    void Set_PBC_k(int n, FDTD_FLOAT k_pbc);
+    void Set_BC_PBC(int idx, FDTD_FLOAT k);
+    void Set_Mur_PhaseVel(int idx, double val);
 
 	//! Get informations about external libs used by openEMS
 	static std::string GetExtLibsInfo(std::string prefix="\t");
@@ -151,7 +155,8 @@ protected:
 	int m_BC_type[6];
 	unsigned int m_PML_size[6]; // [minX, maxX, minY,maxY, minZ, maxZ]
     double m_Mur_v_ph[6];
-    double k_transverse[3]; // transverse wave vector for PBC
+    // wavevector for PBC which determines the phase difference of oppositing faces which are marked as PBC (i. e. m_BC_type = 4)
+    FDTD_FLOAT m_k_PBC[3];
 	//! Check whether or not the FDTD-Operator has to store material data.
 	bool SetupMaterialStorages();
 
