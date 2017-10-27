@@ -43,6 +43,7 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 
 void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
     cout << "this is DoPostVoltageUpdates of the extension " <<  GetExtensionName() << endl;
+    cout << "m_Op_Pbc->kparallel[0]=" << m_Op_Pbc->kparallel[0] << endl;
     unsigned int pos[3];
     bool shift[3];
 

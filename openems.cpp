@@ -764,13 +764,19 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 
 	string bound_names[] = {"xmin","xmax","ymin","ymax","zmin","zmax"};
 	string s_bc;
-    dhelp = 0;
-    string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
-    for(int i=0; i<3; ++i)
-    {
-        if (FDTD_Opts->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS)
-            Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
+    TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundary");
+    if(PBC == NULL){
+        cerr << "No definition of the periodic boundary conditions has been found" << endl;
     }
+    else{
+        for(int i=0; i<3; ++i){
+            dhelp = 0;
+            string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
+            if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS)
+                Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
+        }
+    }
+
 	for (int n=0; n<6; ++n)
 	{
 		int EC = BC->QueryIntAttribute(bound_names[n].c_str(),&ihelp);

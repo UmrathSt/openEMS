@@ -24,11 +24,14 @@
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
+   setKParallel(op->m_k_PBC);
+   cout << "building operator ext pbc extension, k_pbc_y = " << op->m_k_PBC[1] << endl;
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
-    setKParallel(op_ext->kparallel);
+    setKParallel(op->m_k_PBC);
+    cout << "building operator ext pbc extension, k_pbc_x = " << op->m_k_PBC[0] << endl;
 
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
@@ -44,7 +47,7 @@ void Operator_Ext_Pbc::Initialize()
     }
 }
 
-void Operator_Ext_Pbc::setKParallel(float *kpar)
+void Operator_Ext_Pbc::setKParallel(FDTD_FLOAT *kpar)
 {
     kparallel[0] = kpar[0];
     kparallel[1] = kpar[1];
@@ -69,7 +72,7 @@ bool Operator_Ext_Pbc::BuildExtension()
 
     if (kparallel[0] == -1 && kparallel[1] == -1 && kparallel[2] == -1)
     {
-        cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Extension not initialized! Use SetKParallel!! Abort build!!" << endl;
+        cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Obviously the PBC-Extension was used without setting kparallel Abort build!!" << endl;
         return false;
     }
     return true;
