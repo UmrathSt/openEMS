@@ -97,6 +97,9 @@ public:
 	//! Set operator to assume a constant material inside a cell (material probing in the cell center)
 	void SetCellConstantMaterial() {m_MatAverageMethod=CentralCell;}
 
+    //! Set k_pbc if periodic boundary conditions are to be applied
+    inline void Set_k_PBC(int idx, FDTD_FLOAT k) {m_k_PBC[idx] = k;}
+
 	virtual double GetNumberCells() const;
 
 	virtual unsigned int GetNumberOfNyquistTimesteps() const {return m_Exc->GetNyquistNum();}
@@ -281,6 +284,7 @@ public:
 	FDTD_FLOAT**** vi; //calc new voltage from old current
 	FDTD_FLOAT**** ii; //calc new current from old current
 	FDTD_FLOAT**** iv; //calc new current from old voltage
+    FDTD_FLOAT* k_pbc;
 };
 
 inline Operator::DebugFlags operator|( Operator::DebugFlags a, Operator::DebugFlags b ) { return static_cast<Operator::DebugFlags>(static_cast<int>(a) | static_cast<int>(b)); }

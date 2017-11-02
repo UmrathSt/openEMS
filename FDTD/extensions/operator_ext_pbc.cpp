@@ -24,15 +24,22 @@
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
-   setKParallel(op->m_k_PBC);
-   cout << "building operator ext pbc extension, k_pbc_y = " << op->m_k_PBC[1] << endl;
+   set_k_PBC(op->m_k_PBC);
+   for (int dir = 0; dir < 3; ++dir)
+   {
+       if (m_k_PBC[dir] != -1)
+           SetPBCondition_in_direction(dir);
+   }
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
-    setKParallel(op->m_k_PBC);
-    cout << "building operator ext pbc extension, k_pbc_x = " << op->m_k_PBC[0] << endl;
-
+    set_k_PBC(op->m_k_PBC);
+    for (int dir = 0; dir < 3; ++dir)
+    {
+        if (m_k_PBC[dir] != -1)
+            SetPBCondition_in_direction(dir);
+    }
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
@@ -43,15 +50,43 @@ void Operator_Ext_Pbc::Initialize()
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
     for(int i = 0; i<3; ++i){
-        kparallel[i] = -1;
+        m_k_PBC[i] = -1;
+    }
+}
+void Operator_Ext_Pbc::SetPBCondition_in_direction(int n)
+{
+    unsigned int np = (n+1)%3; // in-plane directions i.e. xy for pbc in z-directions
+    unsigned int npp = (n+2)%3;
+    unsigned int pos[3];
+    unsigned int dirvals[2] = {0, m_numLines[n]-2};
+    pos[np] = m_numLines[np]-2;
+    pos[npp] = m_numLines[npp]-2;
+    cout << "I AM SETTING THE OPERATOR in direction " << n << " to 1 " << endl;
+    for (int j = 0; j<2; ++j )
+    {
+        pos[n] = dirvals[j];
+        for (pos[np] = 0; j < m_numLines[np]; ++pos[np])
+        {
+            for (pos[npp] = 0; pos[1] < m_numLines[npp]; ++pos[npp])
+            {
+                m_Op->SetVV(0,pos[0],pos[1],pos[2],1);
+                m_Op->SetVV(1,pos[0],pos[1],pos[2],1);
+                m_Op->SetVV(2,pos[0],pos[1],pos[2],1);
+                m_Op->SetII(0,pos[0],pos[1],pos[2],1);
+                m_Op->SetII(1,pos[0],pos[1],pos[2],1);
+                m_Op->SetII(2,pos[0],pos[1],pos[2],1);
+            }
+        }
     }
 }
 
-void Operator_Ext_Pbc::setKParallel(FDTD_FLOAT *kpar)
+
+
+void Operator_Ext_Pbc::set_k_PBC(FDTD_FLOAT *kpar)
 {
-    kparallel[0] = kpar[0];
-    kparallel[1] = kpar[1];
-    kparallel[2] = kpar[2];
+    m_k_PBC[0] = kpar[0];
+    m_k_PBC[1] = kpar[1];
+    m_k_PBC[2] = kpar[2];
 }
 
 Engine_Extension* Operator_Ext_Pbc::CreateEngineExtention()
@@ -70,9 +105,9 @@ bool Operator_Ext_Pbc::BuildExtension()
 {
     unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
-    if (kparallel[0] == -1 && kparallel[1] == -1 && kparallel[2] == -1)
+    if (m_k_PBC[0] == -1 && m_k_PBC[1] == -1 && m_k_PBC[2] == -1)
     {
-        cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Obviously the PBC-Extension was used without setting kparallel Abort build!!" << endl;
+        cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Obviously the PBC-Extension was used without setting m_k_PBC Abort build!!" << endl;
         return false;
     }
     return true;

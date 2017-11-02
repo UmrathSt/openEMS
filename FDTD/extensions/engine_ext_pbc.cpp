@@ -42,8 +42,6 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 }
 
 void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
-    cout << "this is DoPostVoltageUpdates of the extension " <<  GetExtensionName() << endl;
-    cout << "m_Op_Pbc->kparallel[0]=" << m_Op_Pbc->kparallel[0] << endl;
     unsigned int pos[3];
     bool shift[3];
 
@@ -69,12 +67,11 @@ void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
             }
         }
     }
-    cout << "k_parallel is " << m_Op_Pbc->kparallel[0] << endl;
+    cout << "m_k_PBC is " << m_Op_Pbc->m_k_PBC[0] << endl;
 
 };
 
 void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
-    cout << "this is DoPostCurrentUpdates of the extension " <<  GetExtensionName() << endl;
     unsigned int pos[3];
     bool shift[3];
 

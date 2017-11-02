@@ -16,8 +16,9 @@ public:
     inline virtual FDTD_FLOAT GetII(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return this->m_Op->GetII(n,x,y,z); };
     virtual Operator_Extension* Clone(Operator* op);
     // sets the phase difference between opposite sides of the periodic structure
-    // Example: periodicity (exp(i * k * r) in x-direction only -> kparallel = {1, 0, 0};
-    void setKParallel(float *kpar);
+    // Example: periodicity (exp(i * k * r) in x-direction only -> m_k_PBC = {1, 0, 0};
+    void set_k_PBC(float *kpar);
+    void SetPBCondition_in_direction(int n);
 
     virtual bool BuildExtension();
     virtual Engine_Extension* CreateEngineExtention();
@@ -31,7 +32,7 @@ public:
 protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
     void Initialize();
-    FDTD_FLOAT kparallel[3];
+    FDTD_FLOAT m_k_PBC[3];
     unsigned int m_numLines[3];
 };
 

@@ -296,7 +296,8 @@ bool openEMS::SetupBoundaryConditions()
 	FDTD_Op->SetBoundaryCondition(m_BC_type); //operator only knows about PEC and PMC, everything else is defined by extensions (see below)
 
 	/**************************** create all operator/engine extensions here !!!! **********************************/
-	for (int n=0; n<6; ++n)
+    bool pbcs_used = false;
+    for (int n=0; n<6; ++n)
 	{
 		FDTD_Op->SetBCSize(n, 0);
 		if (m_BC_type[n]==2) //Mur-ABC
@@ -315,10 +316,15 @@ bool openEMS::SetupBoundaryConditions()
         // 		Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_op);
         // 		FDTD_Op->AddExtension(op_ext_pbc);
         if (m_BC_type[n] == 4){
-            Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
-            FDTD_Op->AddExtension(op_ext_pbc);
+            FDTD_Op->Set_k_PBC(n/2, m_k_PBC[n/2]);
+            pbcs_used = true;
         }
         // --------------------
+    }
+    if (pbcs_used)
+    {
+        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
+        FDTD_Op->AddExtension(op_ext_pbc);
     }
 
 
@@ -646,6 +652,7 @@ void openEMS::Set_BC_PBC(int idx, FDTD_FLOAT k_pbc)
 {
     m_BC_type[idx] = 4;
     m_k_PBC[idx] = k_pbc;
+    cout << "setting k_pbc[" << idx << "] to " << k_pbc << endl;
 }
 
 void openEMS::Set_BC_PML(int idx, unsigned int size)
@@ -773,6 +780,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
             dhelp = 0;
             string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
             if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS)
+                cout << "######## Found PBC information k=" << dhelp << endl;
                 Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
         }
     }
