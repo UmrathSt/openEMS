@@ -81,8 +81,11 @@ public:
 	int Get_BC_Type(int idx);
 	void Set_BC_PML(int idx, unsigned int size);
 	int Get_PML_Size(int idx);
+    // PBC methods
     FDTD_FLOAT Get_PBC_k(FDTD_FLOAT* k_pbc);
     void Set_PBC_k(int n, FDTD_FLOAT k_pbc);
+    void Check_pbc_validity();
+
     void Set_BC_PBC(int idx, FDTD_FLOAT k);
     void Set_Mur_PhaseVel(int idx, double val);
 
@@ -118,6 +121,9 @@ protected:
 	double m_TS;
 	double m_TS_fac;
 	double m_maxTime;
+    // check if periodic boundary conditions are used
+    bool pbc_used = false;
+    bool direction_is_pbc[6] = {0};
 
 	// some command line flags
 	bool Enable_Dumps;

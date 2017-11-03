@@ -770,53 +770,67 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 //		pml_gradFunc = string(tmp);
 
 	string bound_names[] = {"xmin","xmax","ymin","ymax","zmin","zmax"};
-	string s_bc;
+    string s_bc;
+    for (int n=0; n<6; ++n)
+    {
+        int EC = BC->QueryIntAttribute(bound_names[n].c_str(),&ihelp);
+        if (EC==TIXML_SUCCESS)
+        {
+            this->Set_BC_Type(n, ihelp);
+            continue;
+        }
+        if (EC==TIXML_WRONG_TYPE)
+        {
+            const char* tmp = BC->Attribute(bound_names[n].c_str());
+            if (tmp)
+                s_bc = string(tmp);
+            else
+                cerr << "openEMS::SetupBoundaryConditions: Warning,  boundary condition for \"" << bound_names[n] << "\" unknown... set to PEC " << endl;
+            if (s_bc=="PEC")
+                this->Set_BC_Type(n, 0);
+            else if (s_bc=="PMC")
+                this->Set_BC_Type(n, 1);
+            else if (s_bc=="MUR")
+                this->Set_BC_Type(n, 2);
+            else if (s_bc=="PBC"){
+                this->Set_BC_Type(n, 4);
+                pbc_used = true;
+                direction_is_pbc[n] = true;
+            }
+            else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
+                this->Set_BC_PML(n, atoi(s_bc.c_str()+4));
+            else
+                cerr << "openEMS::SetupBoundaryConditions: Warning,  boundary condition for \"" << bound_names[n] << "\" unknown... set to PEC " << endl;
+        }
+        else
+            cerr << "openEMS::SetupBoundaryConditions: Warning, boundary condition for \"" << bound_names[n] << "\" not found... set to PEC " << endl;
+    }
+
+    if (pbc_used){
+    Check_pbc_validity();
     TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundary");
     if(PBC == NULL){
-        cerr << "No definition of the periodic boundary conditions has been found" << endl;
+        cerr << "ERROR: PBCs are set, but no PeriodicBoundary section has been found in the .xml configuration file, exiting..." << endl;
+        exit(-3);
     }
     else{
+        string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
         for(int i=0; i<3; ++i){
-            dhelp = 0;
-            string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
-            if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS)
-                cout << "######## Found PBC information k=" << dhelp << endl;
-                Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
+            if (direction_is_pbc[2*i+1])
+            {
+                dhelp = 0;
+                if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
+                    cout << "Setting PBC kvector["<< i << "] = " << dhelp << endl;
+                    Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
+                }
+                else{
+                    cerr << "ERROR: Direction " << i << " is set to PBC, but no value for k_pbc was specified, exiting..." << endl;
+                    exit(-3);
+                    }
+            }
         }
     }
-
-	for (int n=0; n<6; ++n)
-	{
-		int EC = BC->QueryIntAttribute(bound_names[n].c_str(),&ihelp);
-		if (EC==TIXML_SUCCESS)
-		{
-			this->Set_BC_Type(n, ihelp);
-			continue;
-		}
-		if (EC==TIXML_WRONG_TYPE)
-		{
-			const char* tmp = BC->Attribute(bound_names[n].c_str());
-			if (tmp)
-				s_bc = string(tmp);
-			else
-				cerr << "openEMS::SetupBoundaryConditions: Warning,  boundary condition for \"" << bound_names[n] << "\" unknown... set to PEC " << endl;
-			if (s_bc=="PEC")
-				this->Set_BC_Type(n, 0);
-			else if (s_bc=="PMC")
-				this->Set_BC_Type(n, 1);
-			else if (s_bc=="MUR")
-				this->Set_BC_Type(n, 2);
-            else if (s_bc=="PBC")
-                this->Set_BC_Type(n, 4);
-			else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
-				this->Set_BC_PML(n, atoi(s_bc.c_str()+4));
-			else
-				cerr << "openEMS::SetupBoundaryConditions: Warning,  boundary condition for \"" << bound_names[n] << "\" unknown... set to PEC " << endl;
-		}
-		else
-			cerr << "openEMS::SetupBoundaryConditions: Warning, boundary condition for \"" << bound_names[n] << "\" not found... set to PEC " << endl;
-	}
-
+    }
 	//read general mur phase velocity
 	if (BC->QueryDoubleAttribute("MUR_PhaseVelocity",&dhelp) == TIXML_SUCCESS)
 		for (int n=0;n<6;++n)
@@ -875,6 +889,17 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 void openEMS::Set_PBC_k(int n, FDTD_FLOAT k_pbc)
 {
     m_k_PBC[n] = k_pbc;
+}
+void openEMS::Check_pbc_validity()
+{
+    for (int i = 0; i < 3; ++i)
+    {
+        if (direction_is_pbc[2*i] && !(direction_is_pbc[2*i+1]))
+        {
+            cerr << "ERROR: direction " << 2*i << " and " << 2*i+1 << " are not both set to PBC, exiting..." << endl;
+            exit(-3);
+        }
+    }
 }
 
 void openEMS::SetGaussExcite(double f0, double fc)
