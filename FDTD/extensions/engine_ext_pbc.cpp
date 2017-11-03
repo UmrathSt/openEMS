@@ -20,6 +20,11 @@ Engine_Ext_Pbc::Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext) : Engine_Extension(op_e
     volt_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // imaginary parts of
     curr_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // voltage/current as (3, Nx, Ny, Nz) array of floats
     SetNumberOfThreads(1);
+    apply_PBC_to_operator();
+}
+void Engine_Ext_Pbc::apply_PBC_to_operator()
+{
+
 }
 
 Engine_Ext_Pbc::~Engine_Ext_Pbc()
@@ -67,8 +72,6 @@ void Engine_Ext_Pbc::DoPostVoltageUpdates(int threadID){
             }
         }
     }
-    cout << "m_k_PBC is " << m_Op_Pbc->m_k_PBC[0] << endl;
-
 };
 
 void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
@@ -98,6 +101,7 @@ void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
         }
     }
 };
-
+void Engine_Ext_Pbc::Apply_Phases_To_Curr(){};
+void Engine_Ext_Pbc::Apply_Phases_To_Volt(){};
 void Engine_Ext_Pbc::DoPreVoltageUpdates(int threadID){};
 void Engine_Ext_Pbc::Apply2Voltages(int threadID){};
