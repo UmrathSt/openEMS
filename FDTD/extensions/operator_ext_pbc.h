@@ -18,7 +18,6 @@ public:
     // sets the phase difference between opposite sides of the periodic structure
     // Example: periodicity (exp(i * k * r) in x-direction only -> m_k_PBC = {1, 0, 0};
     void set_k_PBC(float *kpar);
-    void SetPBCondition_in_direction(int n);
 
     virtual bool BuildExtension();
     virtual Engine_Extension* CreateEngineExtention();
@@ -26,7 +25,6 @@ public:
     virtual bool IsMPISave() const {return true;}
 
     virtual string GetExtensionName() const {return string("PeriodicBoundaryCondition Extension");}
-
 
 
 protected:

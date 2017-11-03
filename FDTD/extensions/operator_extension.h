@@ -34,6 +34,7 @@ class Engine_Extension;
 class Operator_Extension
 {
 	friend class Engine_Extension;
+    friend class Operator_Ext_Pbc;
 public:
 	virtual ~Operator_Extension();
 

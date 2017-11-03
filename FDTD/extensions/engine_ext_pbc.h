@@ -29,6 +29,7 @@ class Operator_Ext_Pbc;
 class Engine_Ext_Pbc : public Engine_Extension
 {
     friend class Engine;
+    friend class Operator_Ext_Pbc;
 public:
     Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext);
     virtual ~Engine_Ext_Pbc();
