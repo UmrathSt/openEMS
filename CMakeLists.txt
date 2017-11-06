@@ -147,6 +147,7 @@ include(${VTK_USE_FILE})
 INCLUDE_DIRECTORIES (${VTK_INCLUDE_DIR})
 
 #set(CMAKE_CXX_FLAGS "-msse -march=native")
+set(CMAKE_CXX_STANDARD 14)
 
 # independent tool
 ADD_SUBDIRECTORY( nf2ff )
