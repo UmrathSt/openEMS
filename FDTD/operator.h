@@ -40,6 +40,7 @@ class Operator : public Operator_Base
 	friend class Operator_Ext_UPML;
 	friend class Operator_Ext_Cylinder;
     friend class Operator_Ext_Pbc;
+    friend class Engine_Ext_Pbc;
 public:
     enum DebugFlags {None=0,debugMaterial=1,debugOperator=2,debugPEC=4};
 
@@ -98,7 +99,7 @@ public:
 	void SetCellConstantMaterial() {m_MatAverageMethod=CentralCell;}
 
     //! Set k_pbc if periodic boundary conditions are to be applied
-    inline void Set_k_PBC(int idx, FDTD_FLOAT k) {m_k_PBC[idx] = k;}
+    inline void Set_k_PBC(int idx, FDTD_FLOAT k) {m_k_PBC[idx] = k; dir_is_pbc[idx] = true;}
 
 	virtual double GetNumberCells() const;
 
@@ -285,6 +286,7 @@ public:
 	FDTD_FLOAT**** ii; //calc new current from old current
 	FDTD_FLOAT**** iv; //calc new current from old voltage
     FDTD_FLOAT* k_pbc;
+    bool dir_is_pbc[3] = {0};
 };
 
 inline Operator::DebugFlags operator|( Operator::DebugFlags a, Operator::DebugFlags b ) { return static_cast<Operator::DebugFlags>(static_cast<int>(a) | static_cast<int>(b)); }

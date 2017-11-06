@@ -162,7 +162,7 @@ protected:
 	unsigned int m_PML_size[6]; // [minX, maxX, minY,maxY, minZ, maxZ]
     double m_Mur_v_ph[6];
     // wavevector for PBC which determines the phase difference of oppositing faces which are marked as PBC (i. e. m_BC_type = 4)
-    FDTD_FLOAT m_k_PBC[3];
+    FDTD_FLOAT m_k_PBC[3] = {0};
 	//! Check whether or not the FDTD-Operator has to store material data.
 	bool SetupMaterialStorages();
 

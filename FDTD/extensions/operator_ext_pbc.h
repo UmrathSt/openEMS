@@ -18,6 +18,7 @@ public:
     // sets the phase difference between opposite sides of the periodic structure
     // Example: periodicity (exp(i * k * r) in x-direction only -> m_k_PBC = {1, 0, 0};
     void set_k_PBC(float *kpar);
+    void apply_PBC_to_operator(unsigned int dir);
 
     virtual bool BuildExtension();
     virtual Engine_Extension* CreateEngineExtention();
@@ -32,6 +33,8 @@ protected:
     void Initialize();
     FDTD_FLOAT m_k_PBC[3];
     unsigned int m_numLines[3];
+    int m_ny;
+    int m_nyP,m_nyPP;
 };
 
 

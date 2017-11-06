@@ -48,9 +48,7 @@ public:
     virtual void Apply2Voltages() {Engine_Ext_Pbc::Apply2Voltages(0);}
     virtual void Apply2Voltages(int threadID);
 
-    void apply_PBC_to_operator();
-    void Apply_Phases_To_Curr();
-    void Apply_Phases_To_Volt();
+    void Apply_Phases_to_dir(unsigned int dir);
 
 protected:
     Operator_Ext_Pbc* m_Op_Pbc;
@@ -62,6 +60,7 @@ protected:
     unsigned int m_LineNr;
     int m_LineNr_Shift;
     unsigned int m_numLines[3];
+    bool direction_is_pbc[3];
 
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;

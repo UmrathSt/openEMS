@@ -30,6 +30,7 @@ class Engine_Extension;
 
 class Engine
 {
+    friend class Engine_Ext_Pbc;
 public:
 	enum EngineType
 	{
