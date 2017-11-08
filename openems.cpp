@@ -311,12 +311,10 @@ bool openEMS::SetupBoundaryConditions()
 		}
 		if (m_BC_type[n]==3)
 			FDTD_Op->SetBCSize(n, m_PML_size[n]);
-        // I guess here the periodic boundary conditions should be set
-        // if (m_BC_type[n] == PBC_NUMBER
-        // 		Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_op);
-        // 		FDTD_Op->AddExtension(op_ext_pbc);
         if (m_BC_type[n] == 4){
+            cout << "######### found PBC condition setting m_k_PBC of FDTD_Op to " << m_k_PBC[n/2] << endl;
             FDTD_Op->Set_k_PBC(n/2, m_k_PBC[n/2]);
+            direction_is_pbc[n] = true;
             pbcs_used = true;
         }
         // --------------------
@@ -648,11 +646,11 @@ int openEMS::Get_BC_Type(int idx)
 	return m_BC_type[idx];
 }
 
-void openEMS::Set_BC_PBC(int idx, FDTD_FLOAT k_pbc)
+void openEMS::Set_BC_PBC(int idx, FDTD_FLOAT k_PBC)
 {
     m_BC_type[idx] = 4;
-    m_k_PBC[idx] = k_pbc;
-    cout << "setting k_pbc[" << idx << "] to " << k_pbc << endl;
+    m_k_PBC[idx] = k_PBC;
+    cout << "setting m_k_PBC[" << idx << "] to " << k_PBC << endl;
 }
 
 void openEMS::Set_BC_PML(int idx, unsigned int size)
@@ -796,6 +794,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 this->Set_BC_Type(n, 4);
                 pbc_used = true;
                 direction_is_pbc[n] = true;
+                cout << "OPENEMS FOUND PBCs used" << endl;
             }
             else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
                 this->Set_BC_PML(n, atoi(s_bc.c_str()+4));
@@ -821,7 +820,9 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 dhelp = 0;
                 if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
                     cout << "Setting PBC kvector["<< i << "] = " << dhelp << endl;
-                    Set_PBC_k(i, (FDTD_FLOAT)(dhelp));
+                    m_k_PBC[i] = dhelp;
+                    cout << "SETTING m_k_PBC worked!!!! " << endl;
+                    FDTD_Op->Set_k_PBC(i, (FDTD_FLOAT)(dhelp));
                 }
                 else{
                     cerr << "ERROR: Direction " << i << " is set to PBC, but no value for k_pbc was specified, exiting..." << endl;
@@ -886,10 +887,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 		this->SetTimeStepFactor(dhelp);
 	return true;
 }
-void openEMS::Set_PBC_k(int n, FDTD_FLOAT k_pbc)
-{
-    m_k_PBC[n] = k_pbc;
-}
+
 void openEMS::Check_pbc_validity()
 {
     for (int i = 0; i < 3; ++i)

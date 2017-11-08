@@ -83,7 +83,7 @@ public:
 	int Get_PML_Size(int idx);
     // PBC methods
     FDTD_FLOAT Get_PBC_k(FDTD_FLOAT* k_pbc);
-    void Set_PBC_k(int n, FDTD_FLOAT k_pbc);
+
     void Check_pbc_validity();
 
     void Set_BC_PBC(int idx, FDTD_FLOAT k);

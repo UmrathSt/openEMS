@@ -99,7 +99,7 @@ public:
 	void SetCellConstantMaterial() {m_MatAverageMethod=CentralCell;}
 
     //! Set k_pbc if periodic boundary conditions are to be applied
-    inline void Set_k_PBC(int idx, FDTD_FLOAT k) {m_k_PBC[idx] = k; dir_is_pbc[idx] = true;}
+    void Set_k_PBC(int idx, FDTD_FLOAT k);
 
 	virtual double GetNumberCells() const;
 
@@ -215,7 +215,6 @@ protected:
 	double m_TimeStepFactor;
 	virtual double CalcTimestep();
 	double opt_dT;
-    FDTD_FLOAT m_k_PBC[3];
 	bool m_InvaildTimestep;
 	string m_Used_TS_Name;
 
@@ -267,7 +266,8 @@ protected:
 	FDTD_FLOAT* EC_G[3];
 	FDTD_FLOAT* EC_L[3];
 	FDTD_FLOAT* EC_R[3];
-
+    bool dir_is_pbc[3] = {0};
+    FDTD_FLOAT k_PBC[3] = {0.2, 0.100, 0};
 	AdrOp* MainOp;
 
 	vector<Operator_Extension*> m_Op_exts;
@@ -285,8 +285,8 @@ public:
 	FDTD_FLOAT**** vi; //calc new voltage from old current
 	FDTD_FLOAT**** ii; //calc new current from old current
 	FDTD_FLOAT**** iv; //calc new current from old voltage
-    FDTD_FLOAT* k_pbc;
-    bool dir_is_pbc[3] = {0};
+
+
 };
 
 inline Operator::DebugFlags operator|( Operator::DebugFlags a, Operator::DebugFlags b ) { return static_cast<Operator::DebugFlags>(static_cast<int>(a) | static_cast<int>(b)); }

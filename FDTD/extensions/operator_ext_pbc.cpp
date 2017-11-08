@@ -27,34 +27,30 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
    for (unsigned int i  = 0; i<3; ++i){
        if (m_Op->dir_is_pbc[i]){
            cout << "direction " << i << " is PBC" << endl;
+           cout << "namely: k[" << i << "]= " << m_Op->k_PBC[i] << endl;
            apply_PBC_to_operator(i);
        }
-       cout << "m_k_PBC[" << i << "]= "<< m_k_PBC[i] << endl;
    }
-   cout << "Operator_ext_Pbc set the operator in PBC-directions to 1" << endl;
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
     for (unsigned int i  = 0; i<3; ++i){
         if (m_Op->dir_is_pbc[i])
-            cout << "direction " << i << " is PBC" << endl;
-
             apply_PBC_to_operator(i);
-        cout << "m_k_PBC[" << i << "]= "<< m_k_PBC[i] << endl;
     }
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
 void Operator_Ext_Pbc::Initialize()
 {
-
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
     for(int i = 0; i<3; ++i){
-        if (m_Op->dir_is_pbc[i])
-            m_k_PBC[i] = m_Op->k_pbc[i];
+        if (m_Op->dir_is_pbc[i]){
+            cout << "k_PBC[" << i << "] = " << m_Op->k_PBC[i] << endl;
+        }
     }
 }
 void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dir)
@@ -67,8 +63,8 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dir)
     // set operator values in the +- nyP-nyPP-plane to 1
     for (int i=0; i<2; ++i ){
         pos[m_ny] = dir_lines[i];
-        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP]){
-            for (pos[m_nyPP]=0; pos[m_nyPP]>m_numLines[m_nyPP]; ++pos[m_nyPP]){
+        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]-1; ++pos[m_nyP]){
+            for (pos[m_nyPP]=0; pos[m_nyPP]>m_numLines[m_nyPP]-1; ++pos[m_nyPP]){
                 m_Op->SetVV(0, pos[0], pos[1], pos[2], 1);
                 m_Op->SetVV(1, pos[0], pos[1], pos[2], 1);
                 m_Op->SetVV(2, pos[0], pos[1], pos[2], 1);
@@ -80,15 +76,9 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dir)
         }
 
     }
+    cout << "PBC's successfully applied to Operator!" << endl;
 }
 
-
-void Operator_Ext_Pbc::set_k_PBC(FDTD_FLOAT *kpar)
-{
-    m_k_PBC[0] = kpar[0];
-    m_k_PBC[1] = kpar[1];
-    m_k_PBC[2] = kpar[2];
-}
 
 Engine_Extension* Operator_Ext_Pbc::CreateEngineExtention()
 {
@@ -106,7 +96,7 @@ bool Operator_Ext_Pbc::BuildExtension()
 {
     unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
-    if (m_k_PBC[0] == 0 && m_k_PBC[1] == 0 && m_k_PBC[2] == 0)
+    if (m_Op->k_PBC[0] == 0 && m_Op->k_PBC[1] == 0 && m_Op->k_PBC[2] == 0)
     {
         cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Obviously the PBC-Extension was used without setting m_k_PBC, aborting ..." << endl;
         exit(-3);

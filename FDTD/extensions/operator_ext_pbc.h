@@ -17,7 +17,6 @@ public:
     virtual Operator_Extension* Clone(Operator* op);
     // sets the phase difference between opposite sides of the periodic structure
     // Example: periodicity (exp(i * k * r) in x-direction only -> m_k_PBC = {1, 0, 0};
-    void set_k_PBC(float *kpar);
     void apply_PBC_to_operator(unsigned int dir);
 
     virtual bool BuildExtension();
@@ -31,7 +30,6 @@ public:
 protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
     void Initialize();
-    FDTD_FLOAT m_k_PBC[3];
     unsigned int m_numLines[3];
     int m_ny;
     int m_nyP,m_nyPP;
