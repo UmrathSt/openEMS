@@ -267,7 +267,7 @@ protected:
 	FDTD_FLOAT* EC_L[3];
 	FDTD_FLOAT* EC_R[3];
     bool dir_is_pbc[3] = {0};
-    FDTD_FLOAT k_PBC[3] = {0.2, 0.100, 0};
+    FDTD_FLOAT k_PBC[3] = {0.000, 0.000, 0};
 	AdrOp* MainOp;
 
 	vector<Operator_Extension*> m_Op_exts;

@@ -1727,10 +1727,9 @@ void Operator::Init_EC()
 }
 void Operator::Set_k_PBC(int idx, FDTD_FLOAT k)
 {
-    cout << "GOT IDX, k =" << idx << k << endl;
+    cout << "Understood: k[" << idx << "] is = " << k << endl;
     //k_PBC[idx] = k;
-    //cout << "SETTED!!!" << endl;dir_is_pbc[idx] = true;
-    cout << "ALSO WORKED" << endl;
+
 }
 
 bool Operator::Calc_EC()
