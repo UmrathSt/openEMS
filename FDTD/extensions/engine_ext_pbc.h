@@ -48,8 +48,10 @@ public:
     virtual void Apply2Voltages() {Engine_Ext_Pbc::Apply2Voltages(0);}
     virtual void Apply2Voltages(int threadID);
 
-    void Apply_VoltPhases_to_dir(unsigned int dir);
-    void Apply_CurrPhases_to_dir(unsigned int dir);
+    void Apply_VoltRePhases_to_dir(unsigned int dir);
+    void Apply_VoltImPhases_to_dir(unsigned int dir);
+    void Apply_CurrRePhases_to_dir(unsigned int dir);
+    void Apply_CurrImPhases_to_dir(unsigned int dir);
 
 
 protected:
