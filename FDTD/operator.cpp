@@ -1727,7 +1727,6 @@ void Operator::Init_EC()
 }
 void Operator::Set_k_PBC(int idx, FDTD_FLOAT k)
 {
-    cout << "Understood: k[" << idx << "] is = " << k << endl;
     //k_PBC[idx] = k;
 
 }

@@ -45,13 +45,16 @@ public:
     virtual void DoPostCurrentUpdates() {Engine_Ext_Pbc::DoPostCurrentUpdates(0);};
     virtual void DoPostCurrentUpdates(int threadID);
 
-    virtual void Apply2Voltages() {Engine_Ext_Pbc::Apply2Voltages(0);}
-    virtual void Apply2Voltages(int threadID);
+    void Apply2Voltages();
+
+    void Apply2Current();
+
 
     void Apply_VoltRePhases_to_dir(unsigned int dir);
     void Apply_VoltImPhases_to_dir(unsigned int dir);
     void Apply_CurrRePhases_to_dir(unsigned int dir);
     void Apply_CurrImPhases_to_dir(unsigned int dir);
+
 
 
 protected:
@@ -65,7 +68,7 @@ protected:
     int m_LineNr_Shift;
     unsigned int m_numLines[3];
     bool direction_is_pbc[3];
-
+    FDTD_FLOAT phase_kL[3] = {0.1, 0, 0};
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;
 

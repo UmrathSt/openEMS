@@ -35,7 +35,7 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Ope
 {
     Initialize();
     for (unsigned int i  = 0; i<3; ++i){
-        if (m_Op->dir_is_pbc[i])
+        if (i==0)
             apply_PBC_to_operator(i);
     }
 }
