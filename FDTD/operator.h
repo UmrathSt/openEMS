@@ -49,7 +49,7 @@ public:
 	//! Create a new operator
 	static Operator* New();
 	virtual ~Operator();
-
+    bool dir_is_pbc[3] = {0};
 	virtual Engine* CreateEngine();
 	virtual Engine* GetEngine() const {return m_Engine;}
 
@@ -266,7 +266,6 @@ protected:
 	FDTD_FLOAT* EC_G[3];
 	FDTD_FLOAT* EC_L[3];
 	FDTD_FLOAT* EC_R[3];
-    bool dir_is_pbc[3] = {0};
     FDTD_FLOAT k_PBC[3] = {0.000, 0.000, 0};
 	AdrOp* MainOp;
 
@@ -285,7 +284,6 @@ public:
 	FDTD_FLOAT**** vi; //calc new voltage from old current
 	FDTD_FLOAT**** ii; //calc new current from old current
 	FDTD_FLOAT**** iv; //calc new current from old voltage
-
 
 };
 

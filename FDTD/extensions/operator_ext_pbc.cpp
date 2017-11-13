@@ -25,8 +25,7 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
    for (unsigned int i  = 0; i<3; ++i){
-       if (m_Op->dir_is_pbc[i]){
-           cout << "direction " << i << " is PBC with k=" << m_Op->k_PBC[i] << " applying PBC to operator at the boundaries." << endl;
+       if (i==0){
            apply_PBC_to_operator(i);
        }
    }
@@ -35,7 +34,7 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Ope
 {
     Initialize();
     for (unsigned int i  = 0; i<3; ++i){
-        if (i==0)
+        if (i==0 || i==1)
             apply_PBC_to_operator(i);
     }
 }
@@ -64,12 +63,12 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dir)
         pos[m_ny] = dir_lines[i];
         for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP]){
             for (pos[m_nyPP]=0; pos[m_nyPP]>m_numLines[m_nyPP]; ++pos[m_nyPP]){
-                m_Op->SetVV(0, pos[0], pos[1], pos[2], 0);
-                m_Op->SetVV(1, pos[0], pos[1], pos[2], 0);
-                m_Op->SetVV(2, pos[0], pos[1], pos[2], 0);
-                m_Op->SetII(0, pos[0], pos[1], pos[2], 0);
-                m_Op->SetII(1, pos[0], pos[1], pos[2], 0);
-                m_Op->SetII(2, pos[0], pos[1], pos[2], 0);
+                m_Op->SetVV(0, pos[0], pos[1], pos[2], 1);
+                m_Op->SetVV(1, pos[0], pos[1], pos[2], 1);
+                m_Op->SetVV(2, pos[0], pos[1], pos[2], 1);
+                m_Op->SetII(0, pos[0], pos[1], pos[2], 1);
+                m_Op->SetII(1, pos[0], pos[1], pos[2], 1);
+                m_Op->SetII(2, pos[0], pos[1], pos[2], 1);
                 m_Op->SetIV(0, pos[0], pos[1], pos[2], 0);
                 m_Op->SetIV(1, pos[0], pos[1], pos[2], 0);
                 m_Op->SetIV(2, pos[0], pos[1], pos[2], 0);
@@ -77,11 +76,8 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dir)
                 m_Op->SetVI(1, pos[0], pos[1], pos[2], 0);
                 m_Op->SetVI(2, pos[0], pos[1], pos[2], 0);
             }
-
         }
-
     }
-    cout << "PBC's successfully applied to Operator!" << endl;
 }
 
 

@@ -61,6 +61,7 @@ public:
 	//! This methode will be called __after__ all updates to the current and extensions and may add/set its results to the engine current, but may __not__ rely on the current value of the engine current!!!
 	virtual void Apply2Current() {}
 	virtual void Apply2Current(int threadID);
+    virtual void DoPostUpdates() {}
 
 	//! Set the Engine to this extention. This will usually done automatically by Engine::AddExtension
 	virtual void SetEngine(Engine* eng) {m_Eng=eng;}

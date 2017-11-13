@@ -209,6 +209,12 @@ void Engine::Apply2Current()
 	for (size_t n=0; n<m_Eng_exts.size(); ++n)
 		m_Eng_exts.at(n)->Apply2Current();
 }
+void Engine::DoPostUpdates()
+{
+    for (size_t n=0; n<m_Eng_exts.size(); ++n){
+        m_Eng_exts.at(n)->DoPostUpdates();
+    }
+}
 
 bool Engine::IterateTS(unsigned int iterTS)
 {
@@ -226,6 +232,7 @@ bool Engine::IterateTS(unsigned int iterTS)
 		DoPostCurrentUpdates();
 		Apply2Current();
 
+        DoPostUpdates();
 		++numTS;
 	}
 	return true;
