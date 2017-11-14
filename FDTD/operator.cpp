@@ -1143,7 +1143,7 @@ void Operator::ApplyMagneticBC(bool* dirs)
 				{
 					// set to PMC
 					pos[n] = 0;
-					SetII(n,  pos[0],pos[1],pos[2], 0 );
+                    SetII(n,  pos[0],pos[1],pos[2], 0 ); // if x is PMC
 					SetIV(n,  pos[0],pos[1],pos[2], 0 );
 					SetII(nP, pos[0],pos[1],pos[2], 0 );
 					SetIV(nP, pos[0],pos[1],pos[2], 0 );

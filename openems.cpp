@@ -794,7 +794,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 this->Set_BC_Type(n, 4);
                 pbc_used = true;
                 direction_is_pbc[n] = true;
-                cout << "OPENEMS FOUND PBCs used" << endl;
+                cout << "I FOUND, THAT PBCs ARE USED" << endl;
             }
             else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
                 this->Set_BC_PML(n, atoi(s_bc.c_str()+4));

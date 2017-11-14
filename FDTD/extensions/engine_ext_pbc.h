@@ -51,10 +51,8 @@ public:
     void Apply2Current();
 
 
-    void Apply_VoltRePhases_to_dir(unsigned int dir);
-    void Apply_VoltImPhases_to_dir(unsigned int dir);
-    void Apply_CurrRePhases_to_dir(unsigned int dir);
-    void Apply_CurrImPhases_to_dir(unsigned int dir);
+    void Apply_VoltPhases_to_dir(unsigned int dir);
+    void Apply_CurrPhases_to_dir(unsigned int dir);
 
 
 
@@ -70,7 +68,7 @@ protected:
     int m_LineNr_Shift;
     unsigned int m_numLines[3];
     bool direction_is_pbc[3];
-    FDTD_FLOAT phase_kL[3] = {0., 0, 0};
+    FDTD_FLOAT phase_kL[3] = {0, 0.189, 0};
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;
 

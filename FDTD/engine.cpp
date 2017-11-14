@@ -224,13 +224,13 @@ bool Engine::IterateTS(unsigned int iterTS)
 		DoPreVoltageUpdates();
 		UpdateVoltages(0,numLines[0]);
 		DoPostVoltageUpdates();
-		Apply2Voltages();
+        Apply2Voltages(); // here, an excitation is added to the voltages
 
 		//current updates with extensions
 		DoPreCurrentUpdates();
 		UpdateCurrents(0,numLines[0]-1);
 		DoPostCurrentUpdates();
-		Apply2Current();
+        Apply2Current(); // here, an excitation is added to the currents
 
         DoPostUpdates();
 		++numTS;

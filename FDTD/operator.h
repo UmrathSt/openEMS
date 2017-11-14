@@ -266,7 +266,6 @@ protected:
 	FDTD_FLOAT* EC_G[3];
 	FDTD_FLOAT* EC_L[3];
 	FDTD_FLOAT* EC_R[3];
-    FDTD_FLOAT k_PBC[3] = {0.000, 0.000, 0};
 	AdrOp* MainOp;
 
 	vector<Operator_Extension*> m_Op_exts;
@@ -279,6 +278,7 @@ protected:
 
 	// engine/post-proc needs access
 public:
+    FDTD_FLOAT k_PBC[3] = {0.000, 0.000, 0};
 	//EC operator
 	FDTD_FLOAT**** vv; //calc new voltage from old voltage
 	FDTD_FLOAT**** vi; //calc new voltage from old current

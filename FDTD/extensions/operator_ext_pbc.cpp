@@ -45,36 +45,33 @@ void Operator_Ext_Pbc::Initialize()
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
-    for(int i = 0; i<3; ++i){
-        if (m_Op->dir_is_pbc[i]){
-            cout << "k_PBC[" << i << "] = " << m_Op->k_PBC[i] << endl;
-        }
-    }
 }
-void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dir)
+void Operator_Ext_Pbc::apply_PBC_to_operator(unsigned int dirs)
 {
-    m_ny   = dir;
-    m_nyP  = (dir+1)%3;
-    m_nyPP = (dir+2)%3;
-    unsigned int dir_lines[2] = {0, m_numLines[m_ny]};
-    unsigned int pos[3];
-    // set operator values in the +- nyP-nyPP-plane to 1
-    for (int i=0; i<2; ++i ){
-        pos[m_ny] = dir_lines[i];
-        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP]){
-            for (pos[m_nyPP]=0; pos[m_nyPP]>m_numLines[m_nyPP]; ++pos[m_nyPP]){
-                m_Op->SetVV(0, pos[0], pos[1], pos[2], 1);
-                m_Op->SetVV(1, pos[0], pos[1], pos[2], 1);
-                m_Op->SetVV(2, pos[0], pos[1], pos[2], 1);
-                m_Op->SetII(0, pos[0], pos[1], pos[2], 1);
-                m_Op->SetII(1, pos[0], pos[1], pos[2], 1);
-                m_Op->SetII(2, pos[0], pos[1], pos[2], 1);
-                m_Op->SetIV(0, pos[0], pos[1], pos[2], 0);
-                m_Op->SetIV(1, pos[0], pos[1], pos[2], 0);
-                m_Op->SetIV(2, pos[0], pos[1], pos[2], 0);
-                m_Op->SetVI(0, pos[0], pos[1], pos[2], 0);
-                m_Op->SetVI(1, pos[0], pos[1], pos[2], 0);
-                m_Op->SetVI(2, pos[0], pos[1], pos[2], 0);
+    for (int n=0; n<3; ++n){
+        m_ny   = dirs;
+        m_nyP  = (dirs+1)%3;
+        m_nyPP = (dirs+2)%3;
+        unsigned int dir_lines[2] = {0, m_numLines[m_ny]};
+        unsigned int pos[3];
+        // set operator values in the +- nyP-nyPP-plane to 1
+        for (int i=0; i<2; ++i){
+            for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP]){
+                for (pos[m_nyPP]=0; pos[m_nyPP]>m_numLines[m_nyPP]; ++pos[m_nyPP]){
+                    pos[m_ny] = dir_lines[i];
+                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], 0);
+                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2], 0);
+                    m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], 0);
+                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2], 0);
+                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2], 0);
+                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], 0);
+                }
             }
         }
     }
