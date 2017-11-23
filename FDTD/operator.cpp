@@ -286,6 +286,12 @@ bool Operator::SnapToMesh(const double* dcoord, unsigned int* uicoord, bool dual
 	return ok;
 }
 
+void Operator::Set_k_pbc(int idx, FDTD_FLOAT k) {
+    cout << "operator.cpp: Set_k_pbc was called to set k_pbc = " << k << endl;
+    cout << "dirispbc[0]" << dir_is_pbc[0] << endl;
+    k_pbc[idx] = k;
+    cout << "and I could make it" << endl;
+}
 int Operator::SnapBox2Mesh(const double* start, const double* stop, unsigned int* uiStart, unsigned int* uiStop, bool dualMesh, bool fullMesh, int SnapMethod, bool* bStartIn, bool* bStopIn) const
 {
 	double l_start[3], l_stop[3];
@@ -1725,16 +1731,12 @@ void Operator::Init_EC()
 		}
 	}
 }
-void Operator::Set_k_PBC(int idx, FDTD_FLOAT k)
-{
 
-
-}
 
 bool Operator::Calc_EC()
 {
 	if (CSX==NULL)
-	{
+    {
 		cerr << "CartOperator::Calc_EC: CSX not given or invalid!!!" << endl;
 		return false;
 	}

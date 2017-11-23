@@ -86,7 +86,6 @@ public:
 
     void Check_pbc_validity();
 
-    void Set_BC_PBC(int idx, FDTD_FLOAT k);
     void Set_Mur_PhaseVel(int idx, double val);
 
 	//! Get informations about external libs used by openEMS
@@ -124,6 +123,7 @@ protected:
     // check if periodic boundary conditions are used
     bool pbc_used = false;
     bool direction_is_pbc[6] = {0};
+    FDTD_FLOAT k_pbc[3] = {0};
 
 	// some command line flags
 	bool Enable_Dumps;
@@ -162,7 +162,6 @@ protected:
 	unsigned int m_PML_size[6]; // [minX, maxX, minY,maxY, minZ, maxZ]
     double m_Mur_v_ph[6];
     // wavevector for PBC which determines the phase difference of oppositing faces which are marked as PBC (i. e. m_BC_type = 4)
-    FDTD_FLOAT m_k_PBC[3] = {0};
 	//! Check whether or not the FDTD-Operator has to store material data.
 	bool SetupMaterialStorages();
 

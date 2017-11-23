@@ -96,9 +96,9 @@ openEMS::openEMS()
 		m_BC_type[n]  = 0;
 		m_PML_size[n] = 8;
 		m_Mur_v_ph[n] = 0;
-	}
-}
+    }
 
+}
 openEMS::~openEMS()
 {
 	Reset();
@@ -296,7 +296,6 @@ bool openEMS::SetupBoundaryConditions()
 	FDTD_Op->SetBoundaryCondition(m_BC_type); //operator only knows about PEC and PMC, everything else is defined by extensions (see below)
 
 	/**************************** create all operator/engine extensions here !!!! **********************************/
-    bool pbcs_used = false;
     for (int n=0; n<6; ++n)
 	{
 		FDTD_Op->SetBCSize(n, 0);
@@ -312,18 +311,12 @@ bool openEMS::SetupBoundaryConditions()
 		if (m_BC_type[n]==3)
 			FDTD_Op->SetBCSize(n, m_PML_size[n]);
         if (m_BC_type[n] == 4){
-            cout << "######### found PBC condition setting m_k_PBC of FDTD_Op to " << m_k_PBC[n/2] << endl;
-            FDTD_Op->Set_k_PBC(n/2, m_k_PBC[n/2]);
             direction_is_pbc[n] = true;
-            pbcs_used = true;
+            pbc_used = true;
         }
         // --------------------
     }
-    if (pbcs_used)
-    {
-        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
-        FDTD_Op->AddExtension(op_ext_pbc);
-    }
+
 
 
 	//create the upml
@@ -646,12 +639,7 @@ int openEMS::Get_BC_Type(int idx)
 	return m_BC_type[idx];
 }
 
-void openEMS::Set_BC_PBC(int idx, FDTD_FLOAT k_PBC)
-{
-    m_BC_type[idx] = 4;
-    m_k_PBC[idx] = k_PBC;
-    cout << "setting m_k_PBC[" << idx << "] to " << k_PBC << endl;
-}
+
 
 void openEMS::Set_BC_PML(int idx, unsigned int size)
 {
@@ -794,7 +782,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 this->Set_BC_Type(n, 4);
                 pbc_used = true;
                 direction_is_pbc[n] = true;
-                cout << "I FOUND, THAT PBCs ARE USED" << endl;
+                cout << "openEMS.cpp: I FOUND, THAT PBCs ARE USED in direction n/5=" << n << endl;
             }
             else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
                 this->Set_BC_PML(n, atoi(s_bc.c_str()+4));
@@ -819,10 +807,9 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
             {
                 dhelp = 0;
                 if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
-                    cout << "Setting PBC kvector["<< i << "] = " << dhelp << endl;
-                    m_k_PBC[i] = dhelp;
-                    cout << "SETTING m_k_PBC worked!!!! " << endl;
-                    FDTD_Op->Set_k_PBC(i, (FDTD_FLOAT)(dhelp));
+                    cout << "Getting PBC kvectors and trying to set them: kvector["<< i << "] = " << dhelp << endl;
+                    k_pbc[i] = (FDTD_FLOAT)(dhelp);
+                    cout << "openEMS.cpp: setting k_PBC worked in openems.cpp to the value given in the xml worked " << endl;
                 }
                 else{
                     cerr << "ERROR: Direction " << i << " is set to PBC, but no value for k_pbc was specified, exiting..." << endl;
@@ -1098,6 +1085,13 @@ int openEMS::SetupFDTD()
 		Eng_Ext_SSD = dynamic_cast<Engine_Ext_SteadyState*>(Op_Ext_SSD->GetEngineExtention());
 		Eng_Ext_SSD->SetEngineInterface(this->NewEngineInterface());
 	}
+    // setup the pbc
+    if (pbc_used)
+    {
+        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
+        op_ext_pbc->Set_k_pbc(k_pbc);
+        FDTD_Op->AddExtension(op_ext_pbc);
+    }
 
 	//setup all processing classes
 	if (SetupProcessing()==false)

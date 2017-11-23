@@ -41,6 +41,7 @@ class Operator : public Operator_Base
 	friend class Operator_Ext_Cylinder;
     friend class Operator_Ext_Pbc;
     friend class Engine_Ext_Pbc;
+    friend class openEMS;
 public:
     enum DebugFlags {None=0,debugMaterial=1,debugOperator=2,debugPEC=4};
 
@@ -75,6 +76,9 @@ public:
 	inline virtual void SetII( unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT value ) { ii[n][x][y][z] = value; }
 	inline virtual void SetIV( unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT value ) { iv[n][x][y][z] = value; }
 
+    void Set_k_pbc(int idx, FDTD_FLOAT k);
+    FDTD_FLOAT k_pbc[3] = {0};
+
 	virtual void ApplyElectricBC(bool* dirs); //applied by default to all boundaries
 	virtual void ApplyMagneticBC(bool* dirs);
 
@@ -99,7 +103,6 @@ public:
 	void SetCellConstantMaterial() {m_MatAverageMethod=CentralCell;}
 
     //! Set k_pbc if periodic boundary conditions are to be applied
-    void Set_k_PBC(int idx, FDTD_FLOAT k);
 
 	virtual double GetNumberCells() const;
 
@@ -186,6 +189,7 @@ public:
 
 	virtual vector<CSPrimitives*> GetPrimitivesBoundBox(int posX, int posY, int posZ, CSProperties::PropertyType type=CSProperties::ANY) const;
 
+
 protected:
 	//! use New() for creating a new Operator
 	Operator();
@@ -217,6 +221,7 @@ protected:
 	double opt_dT;
 	bool m_InvaildTimestep;
 	string m_Used_TS_Name;
+
 
 	double CalcTimestep_Var1();
 	double CalcTimestep_Var3();
@@ -258,6 +263,7 @@ protected:
 	float**** m_mueR;
 	float**** m_sigma;
 
+
 	//EC elements, internal only!
 	virtual void Init_EC();
 	virtual bool Calc_EC();
@@ -278,12 +284,13 @@ protected:
 
 	// engine/post-proc needs access
 public:
-    FDTD_FLOAT k_PBC[3] = {0.000, 0.000, 0};
+
 	//EC operator
 	FDTD_FLOAT**** vv; //calc new voltage from old voltage
 	FDTD_FLOAT**** vi; //calc new voltage from old current
 	FDTD_FLOAT**** ii; //calc new current from old current
 	FDTD_FLOAT**** iv; //calc new current from old voltage
+
 
 };
 

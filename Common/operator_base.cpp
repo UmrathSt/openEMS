@@ -42,6 +42,7 @@ bool Operator_Base::SetGeometryCSX(ContinuousStructure* geo)
 	return true;
 }
 
+
 std::string Operator_Base::GetDirName(int ny) const
 {
 	if (ny==0) return "x";

@@ -61,14 +61,14 @@ protected:
     Operator_Ext_Pbc* m_Op_Pbc;
     inline bool IsActive() {if (m_Eng->GetNumberOfTimesteps()<m_start_TS) return false; return true;};
     unsigned int m_start_TS;
-
     int m_ny;
     int m_nyP,m_nyPP;
     unsigned int m_LineNr;
     int m_LineNr_Shift;
     unsigned int m_numLines[3];
     bool direction_is_pbc[3];
-    FDTD_FLOAT phase_kL[3] = {0, 0.189, 0};
+    FDTD_FLOAT *k_pbc;
+
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;
 

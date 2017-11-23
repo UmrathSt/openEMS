@@ -32,6 +32,7 @@ typedef struct
 //! Abstract base-class for a common operator
 class Operator_Base
 {
+
 public:
 	virtual ~Operator_Base();
 
@@ -156,6 +157,7 @@ protected:
 
 	//! boundary conditions
 	int m_BC[6];
+
 
 	//! The operator timestep
 	double dT;
