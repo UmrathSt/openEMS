@@ -16,20 +16,12 @@ Engine_Ext_Pbc::Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext) : Engine_Extension(op_e
     m_Op_Pbc = op_ext;
     k_pbc = m_Op_Pbc->k_pbc;
     cout << "engine_ext_pbc.cpp: called the constructor" << endl;
+    cout << "engine_ext_pbc.cpp: kx,ky,kz=" << k_pbc[0] << "," << k_pbc[1] << "," << k_pbc[2] << endl;
     m_numLines[0] = m_Op_Pbc->m_numLines[0];
     m_numLines[1] = m_Op_Pbc->m_numLines[1];
     m_numLines[2] = m_Op_Pbc->m_numLines[2];
     volt_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // imaginary parts of
     curr_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // voltage/current as (3, Nx, Ny, Nz) array of floats
-    SetNumberOfThreads(1);
-    for (unsigned int i = 0; i<3; ++i){
-        if (i==0 || i==1 ){
-            direction_is_pbc[i] = 1;
-            cout << "engine_ext_pbc.cpp: YES i=0 is set to TRUE" << endl;
-        }
-    }
-
-
     SetNumberOfThreads(1);
 
 }
@@ -55,16 +47,9 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 }
 
 void Engine_Ext_Pbc::Apply2Voltages(){
-    int exc_pos;
-    unsigned int ny;
-    int numTS = m_Eng->GetNumberOfTimesteps();
-    unsigned int length = m_Op_Pbc->m_Op->m_Exc->GetLength();
-    FDTD_FLOAT* exc_volt =  m_Op_Pbc->m_Op->m_Exc->GetVoltageSignal();
-    cout << "engine_ext_pbc.cpp: Apply2Voltages" << endl;
 
-    unsigned int pos[3];
-    bool shift[3];
 
+    cout << "engine_ext_pbc.cpp: updating IMAGINARY voltages" << endl;
     for (pos[0]=0; pos[0]<m_numLines[0]; ++pos[0])
     {
         shift[0]=pos[0];
@@ -90,20 +75,12 @@ void Engine_Ext_Pbc::Apply2Voltages(){
         }
         ++pos[0];
     }
-    // imaginary voltages are updated after the real parts are updated, so its okay to apply the PBC phases, now.
-    for(int i=0; i<3; ++i){
-        if(i==0 || i==1){
-            Apply_VoltPhases_to_dir(i);
-        }
-    }
 }
 
 
 void Engine_Ext_Pbc::Apply2Current(){
-    unsigned int pos[3];
-    bool shift[3];
-    cout << "engine_ext_pbc.cpp: Apply2Current" << endl;
 
+    cout << "engine_ext_pbc.cpp: updating IMAGINARY currents" << endl;
 
     for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0])
     {
@@ -130,19 +107,13 @@ void Engine_Ext_Pbc::Apply2Current(){
         }
         ++pos[0];
     }
-    // imaginary currents are updated after the real parts are updated, so its okay to apply the PBC phases, now.
-    for(int i=0; i<3; ++i){
-        if(i==0 || i==1){
-            Apply_CurrPhases_to_dir(i);
-        }
-    }
-    cout << "engine_ext_pbc.cpp: I did the IM current phases " << endl;
-
 };
 void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
     m_ny   = dir;
     m_nyP  = (dir+1)%3;
     m_nyPP = (dir+2)%3;
+    cout << "engine_ext_pbc.cpp: applying phases to voltages in the plane (" << m_nyP << "," << m_nyPP << ")" << endl;
+
     unsigned int posL[3];
     unsigned int posR[3];
     unsigned int dir_lines[2] = {0, m_numLines[dir]-1};
@@ -150,7 +121,6 @@ void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
     FDTD_FLOAT tmp_Ure[3];
     FDTD_FLOAT sinus = sin(k_pbc[dir]);
     FDTD_FLOAT cosinus = cos(k_pbc[dir]);
-    cout << "engine_ext_pbc.cpp: cos(phase), sin(phase) = " << cosinus << ", " << sinus << endl;
     posL[m_ny] = dir_lines[0];
     posR[m_ny] = dir_lines[1];
     for (posL[m_nyP]=0; posL[m_nyP]<m_numLines[m_nyP]; ++posL[m_nyP]){
@@ -164,7 +134,23 @@ void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
             tmp_Ure[0] = m_Eng->GetVolt(0, posL);
             tmp_Ure[1] = m_Eng->GetVolt(1, posL);
             tmp_Ure[2] = m_Eng->GetVolt(2, posL);
-
+            // additive sources
+//            // apply phases to imaginary parts of the voltage on the left pbc border
+//            volt_im[0][posL[0]][posL[1]][posL[2]] += cosinus*volt_im[0][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(0, posR);
+//            volt_im[1][posL[0]][posL[1]][posL[2]] += cosinus*volt_im[1][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(1, posR);
+//            volt_im[2][posL[0]][posL[1]][posL[2]] += cosinus*volt_im[2][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(2, posR);
+//            // apply phases to real parts of the voltage on the left pbc border
+//            m_Eng->SetVolt(0, posL, m_Eng->GetVolt(0, posL) + cosinus*m_Eng->GetVolt(0,posR) - sinus*volt_im[0][posR[0]][posR[1]][posR[2]]);
+//            m_Eng->SetVolt(1, posL, m_Eng->GetVolt(1, posL) + cosinus*m_Eng->GetVolt(1,posR) - sinus*volt_im[1][posR[0]][posR[1]][posR[2]]);
+//            m_Eng->SetVolt(2, posL, m_Eng->GetVolt(2, posL) + cosinus*m_Eng->GetVolt(2,posR) - sinus*volt_im[2][posR[0]][posR[1]][posR[2]]);
+//            // apply phases to imaginary parts of the voltage on the right pbc border
+//            volt_im[0][posR[0]][posR[1]][posR[2]] += cosinus*volt_im[0][posL[0]][posL[1]][posL[2]] - sinus*m_Eng->GetVolt(0, posL);
+//            volt_im[1][posR[0]][posR[1]][posR[2]] += cosinus*volt_im[1][posL[0]][posR[1]][posL[2]] - sinus*m_Eng->GetVolt(1, posL);
+//            volt_im[2][posR[0]][posR[1]][posR[2]] += cosinus*volt_im[2][posL[0]][posL[1]][posL[2]] - sinus*m_Eng->GetVolt(2, posL);
+//            // apply phases to real parts of the voltage on the right pbc border
+//            m_Eng->SetVolt(0, posR, m_Eng->GetVolt(0,posR) + cosinus*m_Eng->GetVolt(0,posL) + sinus*volt_im[0][posL[0]][posL[1]][posL[2]]);
+//            m_Eng->SetVolt(1, posR, m_Eng->GetVolt(1,posR) + cosinus*m_Eng->GetVolt(1,posL) + sinus*volt_im[1][posL[0]][posL[1]][posL[2]]);
+//            m_Eng->SetVolt(2, posR, m_Eng->GetVolt(2,posR) + cosinus*m_Eng->GetVolt(2,posL) + sinus*volt_im[2][posL[0]][posL[1]][posL[2]]);
             // apply phases to imaginary parts of the voltage on the left pbc border
             volt_im[0][posL[0]][posL[1]][posL[2]] = cosinus*volt_im[0][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(0, posR);
             volt_im[1][posL[0]][posL[1]][posL[2]] = cosinus*volt_im[1][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(1, posR);
@@ -173,22 +159,31 @@ void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
             m_Eng->SetVolt(0, posL, cosinus*m_Eng->GetVolt(0,posR) - sinus*volt_im[0][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetVolt(1, posL, cosinus*m_Eng->GetVolt(1,posR) - sinus*volt_im[1][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetVolt(2, posL, cosinus*m_Eng->GetVolt(2,posR) - sinus*volt_im[2][posR[0]][posR[1]][posR[2]]);
-
+            // apply phases to imaginary parts of the voltage on the right pbc border
+            volt_im[0][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[0] - sinus*tmp_Ure[0];
+            volt_im[1][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[1] - sinus*tmp_Ure[1];
+            volt_im[2][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[2] - sinus*tmp_Ure[2];
+            // apply phases to real parts of the voltage on the right pbc border
+            m_Eng->SetVolt(0, posR, cosinus*tmp_Ure[0] + sinus*tmp_Uim[0]);
+            m_Eng->SetVolt(1, posR, cosinus*tmp_Ure[1] + sinus*tmp_Uim[1]);
+            m_Eng->SetVolt(2, posR, cosinus*tmp_Ure[2] + sinus*tmp_Uim[2]);
         }
     }
 };
 
 
 void Engine_Ext_Pbc::Apply_CurrPhases_to_dir(unsigned int dir){
+
+
     m_ny   = dir;
     m_nyP  = (dir+1)%3;
     m_nyPP = (dir+2)%3;
+    cout << "engine_ext_pbc.cpp: applying phases to currents in the plane (" << m_nyP << "," << m_nyPP << ")" << endl;
     unsigned int posL[3];
     unsigned int posR[3];
     unsigned int dir_lines[2] = {0, m_numLines[dir]-1};
     FDTD_FLOAT tmp_Iim[3];
     FDTD_FLOAT tmp_Ire[3];
-    cout << "engine_ext_pbc.cpp: k_pbc[0]=" << k_pbc[0] << endl;
     FDTD_FLOAT sinus = sin(k_pbc[dir]);
     FDTD_FLOAT cosinus = cos(k_pbc[dir]);
     posL[m_ny] = dir_lines[0];
@@ -204,6 +199,23 @@ void Engine_Ext_Pbc::Apply_CurrPhases_to_dir(unsigned int dir){
             tmp_Ire[0] = m_Eng->GetCurr(0, posL);
             tmp_Ire[1] = m_Eng->GetCurr(1, posL);
             tmp_Ire[2] = m_Eng->GetCurr(2, posL);
+            // PBCs act as "additive" source
+//            // apply phases to imaginary parts of the current on the left pbc border
+//            curr_im[0][posL[0]][posL[1]][posL[2]] += cosinus*curr_im[0][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(0, posR);
+//            curr_im[1][posL[0]][posL[1]][posL[2]] += cosinus*curr_im[1][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(1, posR);
+//            curr_im[2][posL[0]][posL[1]][posL[2]] += cosinus*curr_im[2][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(2, posR);
+//            // apply phases to real parts of the current on the left pbc border
+//            m_Eng->SetCurr(0, posL, m_Eng->GetCurr(0,posL) + cosinus*m_Eng->GetCurr(0,posR) - sinus*curr_im[0][posR[0]][posR[1]][posR[2]]);
+//            m_Eng->SetCurr(1, posL, m_Eng->GetCurr(1,posL) + cosinus*m_Eng->GetCurr(1,posR) - sinus*curr_im[1][posR[0]][posR[1]][posR[2]]);
+//            m_Eng->SetCurr(2, posL, m_Eng->GetCurr(2,posL) + cosinus*m_Eng->GetCurr(2,posR) - sinus*curr_im[2][posR[0]][posR[1]][posR[2]]);
+//            // apply phases to imaginary parts of the voltage on the right pbc border
+//            curr_im[0][posR[0]][posR[1]][posR[2]] += cosinus*curr_im[0][posL[0]][posL[1]][posL[2]] - sinus*m_Eng->GetCurr(0, posL);
+//            curr_im[1][posR[0]][posR[1]][posR[2]] += cosinus*curr_im[1][posL[0]][posR[1]][posL[2]] - sinus*m_Eng->GetCurr(1, posL);
+//            curr_im[2][posR[0]][posR[1]][posR[2]] += cosinus*curr_im[2][posL[0]][posL[1]][posL[2]] - sinus*m_Eng->GetCurr(2, posL);
+//            // apply phases to real parts of the voltage on the right pbc border
+//            m_Eng->SetCurr(0, posR, m_Eng->GetCurr(0,posR) + cosinus*m_Eng->GetCurr(0,posL) + sinus*curr_im[0][posL[0]][posL[1]][posL[2]]);
+//            m_Eng->SetCurr(1, posR, m_Eng->GetCurr(1,posR) + cosinus*m_Eng->GetCurr(1,posL) + sinus*curr_im[1][posL[0]][posL[1]][posL[2]]);
+//            m_Eng->SetCurr(2, posR, m_Eng->GetCurr(2,posR) + cosinus*m_Eng->GetCurr(2,posL) + sinus*curr_im[2][posL[0]][posL[1]][posL[2]]);
 
             // apply phases to imaginary parts of the current on the left pbc border
             curr_im[0][posL[0]][posL[1]][posL[2]] = cosinus*curr_im[0][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(0, posR);
@@ -213,7 +225,14 @@ void Engine_Ext_Pbc::Apply_CurrPhases_to_dir(unsigned int dir){
             m_Eng->SetCurr(0, posL, cosinus*m_Eng->GetCurr(0,posR) - sinus*curr_im[0][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetCurr(1, posL, cosinus*m_Eng->GetCurr(1,posR) - sinus*curr_im[1][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetCurr(2, posL, cosinus*m_Eng->GetCurr(2,posR) - sinus*curr_im[2][posR[0]][posR[1]][posR[2]]);
-
+            // apply phases to imaginary parts of the voltage on the right pbc border
+            curr_im[0][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[0] - sinus*tmp_Ire[0];
+            curr_im[1][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[1] - sinus*tmp_Ire[1];
+            curr_im[2][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[2] - sinus*tmp_Ire[2];
+            // apply phases to real parts of the voltage on the right pbc border
+            m_Eng->SetCurr(0, posR, cosinus*tmp_Ire[0] + sinus*tmp_Iim[0]);
+            m_Eng->SetCurr(1, posR, cosinus*tmp_Ire[1] + sinus*tmp_Iim[1]);
+            m_Eng->SetCurr(2, posR, cosinus*tmp_Ire[2] + sinus*tmp_Iim[2]);
         }
     }
 };
@@ -224,12 +243,13 @@ void Engine_Ext_Pbc::DoPreVoltageUpdates(int threadID)
 };
 void Engine_Ext_Pbc::DoPostUpdates()
 {
+    cout << "engine_ext_pbc.cpp: DoPostUpdates() was called... applying phases to imag and real parts of the voltages and currents" << endl;
     for(int i=0; i<3; ++i){
-        if(i==0 || i==1){
+        if(m_Op_Pbc->pbc_dirs[2*i]){
             Apply_CurrPhases_to_dir(i);
+            Apply_VoltPhases_to_dir(i);
         }
     }
-    cout << "engine_ext_pbc.cpp: I did the IM current phases vis DoPostUpdates() " << endl;
 }
 
 void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){

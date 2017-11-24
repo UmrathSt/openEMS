@@ -7,6 +7,7 @@
 class Operator_Ext_Pbc : public Operator_Extension
 {
     friend class Engine_Ext_Pbc;
+    friend class openEMS;
 public:
     Operator_Ext_Pbc(Operator* op);
     ~Operator_Ext_Pbc();
@@ -23,6 +24,7 @@ public:
     // Example: periodicity (exp(i * k * r) in x-direction only -> m_k_PBC = {1, 0, 0};
     void apply_PBC_to_operator(bool *dirs);
     void Set_k_pbc(FDTD_FLOAT *k_pbc);
+    void Set_pbc_dirs(bool *dirs);
 
     virtual bool BuildExtension();
     virtual Engine_Extension* CreateEngineExtention();
@@ -35,10 +37,11 @@ protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
     void Initialize();
     unsigned int m_numLines[3];
+    unsigned int pos[3];
     int m_ny;
     int m_nyP,m_nyPP;
-    bool pbc_dirs[6];
-    FDTD_FLOAT k_pbc[3];
+    bool pbc_dirs[6] = {0};
+    FDTD_FLOAT k_pbc[3] = {0};
     Excitation * m_Exc;
 
 };

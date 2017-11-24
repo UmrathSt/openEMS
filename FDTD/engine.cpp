@@ -62,6 +62,7 @@ void Engine::InitExtensions()
 	{
 		Operator_Extension* op_ext = Op->GetExtension(n);
 		Engine_Extension* eng_ext = op_ext->CreateEngineExtention();
+        cout << "engine.cpp: InitExtensions of name " << eng_ext->GetExtensionName() << endl;
 		if (eng_ext)
 		{
 			eng_ext->SetEngine(this);
@@ -107,6 +108,8 @@ void Engine::Reset()
 
 void Engine::UpdateVoltages(unsigned int startX, unsigned int numX)
 {
+    cout << "engine.cpp: updating REAL voltages" << endl;
+
 	unsigned int pos[3];
 	bool shift[3];
 
@@ -141,6 +144,8 @@ void Engine::UpdateVoltages(unsigned int startX, unsigned int numX)
 
 void Engine::UpdateCurrents(unsigned int startX, unsigned int numX)
 {
+    cout << "engine.cpp: updating REAL currents" << endl;
+
 	unsigned int pos[3];
 	pos[0] = startX;
 	for (unsigned int posX=0; posX<numX; ++posX)
@@ -222,17 +227,17 @@ bool Engine::IterateTS(unsigned int iterTS)
 	{
 		//voltage updates with extensions
 		DoPreVoltageUpdates();
-		UpdateVoltages(0,numLines[0]);
+        UpdateVoltages(0,numLines[0]); //real voltage updates
 		DoPostVoltageUpdates();
-        Apply2Voltages(); // here, an excitation is added to the voltages
+        Apply2Voltages(); // here, an excitation is added to the voltages // imag voltage updates if pbcs are used
 
 		//current updates with extensions
 		DoPreCurrentUpdates();
-		UpdateCurrents(0,numLines[0]-1);
+        UpdateCurrents(0,numLines[0]-1); // real current updates
 		DoPostCurrentUpdates();
-        Apply2Current(); // here, an excitation is added to the currents
+        Apply2Current(); // here, an excitation is added to the currents // imag current updates if pbcs are used
 
-        DoPostUpdates();
+        DoPostUpdates(); // applying phases if pbcs are used
 		++numTS;
 	}
 	return true;

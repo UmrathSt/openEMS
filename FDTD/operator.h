@@ -102,7 +102,6 @@ public:
 	//! Set operator to assume a constant material inside a cell (material probing in the cell center)
 	void SetCellConstantMaterial() {m_MatAverageMethod=CentralCell;}
 
-    //! Set k_pbc if periodic boundary conditions are to be applied
 
 	virtual double GetNumberCells() const;
 

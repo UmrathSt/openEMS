@@ -68,6 +68,8 @@ protected:
     unsigned int m_numLines[3];
     bool direction_is_pbc[3];
     FDTD_FLOAT *k_pbc;
+    bool shift[3];
+    unsigned int pos[3];
 
     vector<unsigned int> m_start;
     vector<unsigned int> m_numX;

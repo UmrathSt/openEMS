@@ -24,26 +24,13 @@
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
-   for (unsigned int i  = 0; i<3; ++i){
-       pbc_dirs[2*i] = false;
-       pbc_dirs[2*i+1] = false;
-       if (i==0 ){
-           pbc_dirs[2*i] = true;
-           pbc_dirs[2*i+1] = true;
-       }
-   }
+
    apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
-    for (unsigned int i  = 0; i<3; ++i){
-        pbc_dirs[2*i] = false;
-        pbc_dirs[2*i+1] = false;
-        if (i==0 )
-            pbc_dirs[2*i] = true;
-            pbc_dirs[2*i+1] = true;
-    }
+
     apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
@@ -53,16 +40,13 @@ void Operator_Ext_Pbc::Initialize()
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
+    apply_PBC_to_operator(pbc_dirs);
+    cout << "operator_ext_pbc.cpp: Initialize()... so the pbcs have been applied to the main operator " << endl;
 }
 void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
 {
-    for (int i=0; i<3; ++i){
 
-    }
 
-    cout << endl;
-    unsigned int dir_lines[2] = {0, m_numLines[m_ny]-1};
-    unsigned int pos[3];
     for(int i=0; i<3; ++i)
     {
         m_ny   = dirs[i];
@@ -74,46 +58,38 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
 
             for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]-1; ++pos[m_nyPP])
             {
+                FDTD_FLOAT val = 17.2;
+
                 if(dirs[2*i]){ // lowest mesh-line in direction i = (0,1,2) = ("x","y","z")
-                    //cout << "operator_ext_pbc.cpp: setting the lower operator values according to PBC" << endl;
                     pos[m_ny] = 0;
-                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],0);
-                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2],0);
-                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], 0);
+                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], val);
+                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],val);
+                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], val);
+                    // set the driving terms to zero such that the fields don't get updated
+
 
                 }
-                if(dirs[2*i+1]){ // lowest mesh-line in direction i = (0,1,2) = ("x","y","z")
-                    //cout << "operator_ext_pbc.cpp: setting the higher operator values according to PBC" << endl;
+                 if(dirs[2*i+1]){ // lowest mesh-line in direction i = (0,1,2) = ("x","y","z")
 
                     pos[m_ny] = m_numLines[dirs[i]]-1;
-                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], 1);
-                    pos[m_ny] -= 1; // outside the FDTD domain...?
-                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], 0);
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], 1);
-                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], 1);
+                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], val);
+                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2], val);
+                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], val);
+
+                    pos[m_ny] = m_numLines[dirs[i]]-2;
+
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], val);
+                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], val);
+
+
+
 
 
                 }
@@ -128,7 +104,6 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
 
 Engine_Extension* Operator_Ext_Pbc::CreateEngineExtention()
 {
-    cout << "operator_ext_pbc.cpp: created engine extenesion engine_ext_pbc(this)" << endl;
     Engine_Ext_Pbc* eng_ext_pbc = new Engine_Ext_Pbc(this);
     return eng_ext_pbc;
 }
@@ -141,7 +116,12 @@ Operator_Extension* Operator_Ext_Pbc::Clone(Operator* op)
 void Operator_Ext_Pbc::Set_k_pbc(FDTD_FLOAT *k){
     for (int i=0; i<3; ++i){
         k_pbc[i] = k[i];
-        cout << "operator_ext_pbc.cpp: now k_pbc[i] is equal to = " << k_pbc[i] << endl;
+    }
+}
+
+void Operator_Ext_Pbc::Set_pbc_dirs(bool *dirs){
+    for (int i=0; i<6; ++i){
+        pbc_dirs[i] = dirs[i];
     }
 }
 

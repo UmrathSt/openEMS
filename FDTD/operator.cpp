@@ -558,7 +558,7 @@ void Operator::DumpOperator2File(string filename)
 	double discLines_scaling = GetGridDelta();
 #endif
 
-	cout << "Operator: Dumping FDTD operator information to vtk file: " << filename << " ..." << flush;
+    cout << "Operator: Dumping FDTD operator information to vtk file: " << filename << " ..." << endl;
 
 	VTK_File_Writer* vtk_Writer = new VTK_File_Writer(filename.c_str(), m_MeshType);
 	vtk_Writer->SetMeshLines(discLines,numLines,discLines_scaling);
@@ -2057,6 +2057,7 @@ Operator_Ext_Excitation* Operator::GetExcitationExtension() const
 void Operator::AddExtension(Operator_Extension* op_ext)
 {
 	m_Op_exts.push_back(op_ext);
+    cout << "operator.cpp: Added Extension with name: " << op_ext->GetExtensionName() << endl;
 }
 
 void Operator::DeleteExtension(Operator_Extension* op_ext)

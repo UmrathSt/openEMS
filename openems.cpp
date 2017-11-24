@@ -782,7 +782,6 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 this->Set_BC_Type(n, 4);
                 pbc_used = true;
                 direction_is_pbc[n] = true;
-                cout << "openEMS.cpp: I FOUND, THAT PBCs ARE USED in direction n/5=" << n << endl;
             }
             else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
                 this->Set_BC_PML(n, atoi(s_bc.c_str()+4));
@@ -807,7 +806,6 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
             {
                 dhelp = 0;
                 if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
-                    cout << "Getting PBC kvectors and trying to set them: kvector["<< i << "] = " << dhelp << endl;
                     k_pbc[i] = (FDTD_FLOAT)(dhelp);
                     cout << "openEMS.cpp: setting k_PBC worked in openems.cpp to the value given in the xml worked " << endl;
                 }
@@ -1021,7 +1019,20 @@ int openEMS::SetupFDTD()
 	if (m_debugPEC)
 		debugFlags |= Operator::debugPEC;
 
+
+    cout << "openems.cpp: Before CalcECOperator(debugFlags)" << endl;
 	FDTD_Op->CalcECOperator( debugFlags );
+    // setup the pbc such that the FDTD_Eng will know about the PBCs
+    if (pbc_used)
+    {
+        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
+        op_ext_pbc->Set_k_pbc(k_pbc);
+        op_ext_pbc->Set_pbc_dirs(direction_is_pbc);
+        op_ext_pbc->Initialize();
+        FDTD_Op->AddExtension(op_ext_pbc);
+        cout << "openems.cpp: Added Operator_Ext_Pbc extension to FDTD Operator" << endl;
+    }
+
 	/*******************************************************************************/
 
 	//reset flags for material storage, if no dump-box resets it to true, it will be cleaned up...
@@ -1077,6 +1088,7 @@ int openEMS::SetupFDTD()
 		return 1;
 	}
 
+
 	//create FDTD engine
 	FDTD_Eng = FDTD_Op->CreateEngine();
 
@@ -1085,13 +1097,7 @@ int openEMS::SetupFDTD()
 		Eng_Ext_SSD = dynamic_cast<Engine_Ext_SteadyState*>(Op_Ext_SSD->GetEngineExtention());
 		Eng_Ext_SSD->SetEngineInterface(this->NewEngineInterface());
 	}
-    // setup the pbc
-    if (pbc_used)
-    {
-        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
-        op_ext_pbc->Set_k_pbc(k_pbc);
-        FDTD_Op->AddExtension(op_ext_pbc);
-    }
+
 
 	//setup all processing classes
 	if (SetupProcessing()==false)
