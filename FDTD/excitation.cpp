@@ -295,9 +295,9 @@ void Excitation::CalcSinusExcitation(double f0, int nTS)
 	for (unsigned int n=1; n<Length; ++n)
 	{
 		double t = n*dT;
-		Signal_volt[n] = sin(2.0*PI*f0*t);
+        Signal_volt[n] = cos(2.0*PI*f0*t); // sin-> cos
 		t += 0.5*dT;
-		Signal_curr[n] = sin(2.0*PI*f0*t);
+        Signal_curr[n] = cos(2.0*PI*f0*t);
 	}
 	m_f_max = f0;
 	m_foi = f0;
