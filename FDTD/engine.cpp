@@ -108,7 +108,6 @@ void Engine::Reset()
 
 void Engine::UpdateVoltages(unsigned int startX, unsigned int numX)
 {
-    cout << "engine.cpp: updating REAL voltages" << endl;
 
 	unsigned int pos[3];
 	bool shift[3];
@@ -144,7 +143,6 @@ void Engine::UpdateVoltages(unsigned int startX, unsigned int numX)
 
 void Engine::UpdateCurrents(unsigned int startX, unsigned int numX)
 {
-    cout << "engine.cpp: updating REAL currents" << endl;
 
 	unsigned int pos[3];
 	pos[0] = startX;

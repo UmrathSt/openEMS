@@ -49,7 +49,6 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 void Engine_Ext_Pbc::Apply2Voltages(){
 
 
-    cout << "engine_ext_pbc.cpp: updating IMAGINARY voltages" << endl;
     for (pos[0]=0; pos[0]<m_numLines[0]; ++pos[0])
     {
         shift[0]=pos[0];
@@ -80,7 +79,6 @@ void Engine_Ext_Pbc::Apply2Voltages(){
 
 void Engine_Ext_Pbc::Apply2Current(){
 
-    cout << "engine_ext_pbc.cpp: updating IMAGINARY currents" << endl;
 
     for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0])
     {
@@ -112,7 +110,7 @@ void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
     m_ny   = dir;
     m_nyP  = (dir+1)%3;
     m_nyPP = (dir+2)%3;
-    cout << "engine_ext_pbc.cpp: applying phases to voltages in the plane (" << m_nyP << "," << m_nyPP << ")" << endl;
+
 
     unsigned int posL[3];
     unsigned int posR[3];
@@ -178,7 +176,6 @@ void Engine_Ext_Pbc::Apply_CurrPhases_to_dir(unsigned int dir){
     m_ny   = dir;
     m_nyP  = (dir+1)%3;
     m_nyPP = (dir+2)%3;
-    cout << "engine_ext_pbc.cpp: applying phases to currents in the plane (" << m_nyP << "," << m_nyPP << ")" << endl;
     unsigned int posL[3];
     unsigned int posR[3];
     unsigned int dir_lines[2] = {0, m_numLines[dir]-1};
@@ -243,7 +240,7 @@ void Engine_Ext_Pbc::DoPreVoltageUpdates(int threadID)
 };
 void Engine_Ext_Pbc::DoPostUpdates()
 {
-    cout << "engine_ext_pbc.cpp: DoPostUpdates() was called... applying phases to imag and real parts of the voltages and currents" << endl;
+
     for(int i=0; i<3; ++i){
         if(m_Op_Pbc->pbc_dirs[2*i]){
             Apply_CurrPhases_to_dir(i);
