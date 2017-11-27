@@ -25,13 +25,13 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
 
-   //apply_PBC_to_operator(pbc_dirs);
+   apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
 
-    //apply_PBC_to_operator(pbc_dirs);
+    apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
@@ -41,7 +41,7 @@ void Operator_Ext_Pbc::Initialize()
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
     apply_PBC_to_operator(pbc_dirs);
-    cout << "operator_ext_pbc.cpp: Initialize()... so the pbcs have been applied to the main operator " << endl;
+    cout << "operator_ext_pbc.cpp: Initialize()... the pbcs have been applied to the main operator " << endl;
 }
 void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
 {
@@ -68,7 +68,7 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
                     m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
                     m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], pp_val);
                     m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    // set the driving terms to zero such that the fields don't get updated
+                    // set the driving terms to zero such that the fields on the PBs don't get updated
                     m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], pq_val);
                     m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2],pq_val);
                     m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
@@ -84,7 +84,7 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
                     m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
                     m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], pp_val);
                     m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    // set the driving terms to zero such that the fields don't get updated
+                    // set the driving terms to zero such that the fields on the PBs don't get updated
                     m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], pq_val);
                     m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2], pq_val);
                     m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
