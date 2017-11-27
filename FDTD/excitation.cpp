@@ -155,7 +155,7 @@ void Excitation::CalcGaussianPulsExcitation(double f0, double fc, int nTS)
 	Length = (unsigned int)ceil(2.0 * 9.0/(2.0*PI*fc) / dT);
 	if (Length>(unsigned int)nTS)
 	{
-		cerr << "Operator::CalcGaussianPulsExcitation: Requested excitation pusle would be " << Length << " timesteps or " << Length * dT << " s long. Cutting to max number of timesteps!" << endl;
+        cerr << "Operator::CalcGaussianPulsExcitation: Requested excitation pulse would be " << Length << " timesteps or " << Length * dT << " s long. Cutting to max number of timesteps!" << endl;
 		Length=(unsigned int)nTS;
 	}
 	delete[] Signal_volt;
@@ -176,33 +176,6 @@ void Excitation::CalcGaussianPulsExcitation(double f0, double fc, int nTS)
 	SetNyquistNum( CalcNyquistNum(f0+fc,dT) );
 }
 
-void Excitation::CalcSINGaussianPulsExcitation(double f0, double fc, int nTS)
-{
-    if (dT==0) return;
-
-    Length = (unsigned int)ceil(2.0 * 9.0/(2.0*PI*fc) / dT);
-    if (Length>(unsigned int)nTS)
-    {
-        cerr << "Operator::CalcGaussianPulsExcitation: Requested excitation pusle would be " << Length << " timesteps or " << Length * dT << " s long. Cutting to max number of timesteps!" << endl;
-        Length=(unsigned int)nTS;
-    }
-    delete[] Signal_volt;
-    delete[] Signal_curr;
-    Signal_volt = new FDTD_FLOAT[Length];
-    Signal_curr = new FDTD_FLOAT[Length];
-    for (unsigned int n=0; n<Length; ++n)
-    {
-        double t = n*dT;
-        Signal_volt[n] = cos(2.0*PI*f0*(t-9.0/(2.0*PI*fc)))*exp(-1*pow(2.0*PI*fc*t/3.0-3,2));
-        t += 0.5*dT;
-        Signal_curr[n] = cos(2.0*PI*f0*(t-9.0/(2.0*PI*fc)))*exp(-1*pow(2.0*PI*fc*t/3.0-3,2));
-    }
-
-    m_foi = f0;
-    m_f_max = f0+fc;
-
-    SetNyquistNum( CalcNyquistNum(f0+fc,dT) );
-}
 
 
 void Excitation::CalcDiracPulsExcitation()
@@ -295,9 +268,9 @@ void Excitation::CalcSinusExcitation(double f0, int nTS)
 	for (unsigned int n=1; n<Length; ++n)
 	{
 		double t = n*dT;
-        Signal_volt[n] = cos(2.0*PI*f0*t); // sin-> cos
+        Signal_volt[n] = sin(2.0*PI*f0*t);
 		t += 0.5*dT;
-        Signal_curr[n] = cos(2.0*PI*f0*t);
+        Signal_curr[n] = sin(2.0*PI*f0*t);
 	}
 	m_f_max = f0;
 	m_foi = f0;

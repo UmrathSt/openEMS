@@ -36,7 +36,7 @@ class Engine;
 //! Abstract base-class for all engine extensions
 class Engine_Extension
 {
-    friend class Engine_Ext_Pbc;
+
 public:
 	virtual ~Engine_Extension();
 

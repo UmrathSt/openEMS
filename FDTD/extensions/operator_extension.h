@@ -79,7 +79,7 @@ protected:
 	//FDTD Operator
 	Operator* m_Op;
 	Engine_Extension* m_Eng_Ext;
-    bool dir_is_pbc[3] = {0};
+
 
 	//Cylindrical FDTD Operator (not NULL if a cylindrical FDTD is used)
 	Operator_Cylinder* m_Op_Cyl;

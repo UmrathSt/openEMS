@@ -104,7 +104,6 @@ protected:
 	virtual void CalcCustomExcitation(double f0, int nTS, std::string signal);
 	//! Calculate an excitation with center of \a f0 and the half bandwidth \a fc
 	virtual void CalcGaussianPulsExcitation(double f0, double fc, int nTS);
-    virtual void CalcSINGaussianPulsExcitation(double f0, double fc, int nTS);
 	//! Calculate a sinusoidal excitation with frequency \a f0 and a duration of \a nTS number of timesteps
 	virtual void CalcSinusExcitation(double f0, int nTS);
 	//! Calculate a dirac impuls excitation

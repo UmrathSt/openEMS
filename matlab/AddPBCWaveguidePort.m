@@ -1,7 +1,9 @@
-function [CSX,port] = AddWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
-% function [CSX,port] = AddWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
+function [CSX,port] = AddPBCWaveGuidePort(CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
+% function [CSX,port] = AddPBCWaveGuidePort(CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
 % 
-% Create a waveguide port, including an optional excitation and probes
+% Create a PBC waveguide port for constant transverse wavenumber
+% waves (CTW) in geometries beeing periodic in the x- and y- directions
+% including an optional excitation and probes
 % 
 % Note: - The excitation will be located at the start position in the given direction
 %       - The voltage and current probes at the stop position in the given direction
@@ -64,7 +66,7 @@ port.kc = kc;
 port.dir = dir;
 port.drawingunit = CSX.RectilinearGrid.ATTRIBUTE.DeltaUnit;
 
-PortNamePrefix = '';
+PortNamePrefix = 'PBC_cosine';
 
 varargin_tmp  = varargin;
 for n=1:2:numel(varargin_tmp)
