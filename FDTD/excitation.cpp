@@ -62,6 +62,15 @@ bool Excitation::SetupGaussianPulse(double f0, double fc)
 	m_SignalPeriod = 0;
 }
 
+bool Excitation::SetupPBCGaussianPulse(double f0, double fc)
+{
+    m_Excit_Type = Excitation::PBCGaissianPulse;
+    m_f0 = f0;
+    m_fc = fc;
+    m_f_max = f0+fc;
+    m_SignalPeriod = 0;
+}
+
 bool Excitation::SetupSinusoidal(double f0)
 {
 	m_Excit_Type = Excitation::Sinusoidal;

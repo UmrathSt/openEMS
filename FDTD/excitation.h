@@ -25,13 +25,15 @@
 class Excitation
 {
 public:
-	enum ExciteTypes {UNDEFINED=-1, GaissianPulse=0, Sinusoidal=1, DiracPulse=2, Step=3, CustomExcite=10};
+    enum ExciteTypes {UNDEFINED=-1, GaissianPulse=0, Sinusoidal=1, DiracPulse=2, Step=3, PBCGaissianPulse=4, CustomExcite=10};
 	Excitation();
 	virtual ~Excitation();
 
 	virtual void Reset( double timestep );
 
 	bool SetupGaussianPulse(double f0, double fc);
+    bool SetupPBCGaussianPulse(double f0, double fc);
+
 	bool SetupSinusoidal(double f0);
 	bool SetupDiracPulse(double fmax);
 	bool SetupStepExcite(double fmax);

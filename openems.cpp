@@ -845,6 +845,11 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 		m_Excite_Elem->QueryDoubleAttribute("fc",&fc);
 		exc->SetupGaussianPulse(f0, fc);
 		break;
+    case Excitation::PBCGaissianPulse:
+        m_Excite_Elem->QueryDoubleAttribute("f0",&f0);
+        m_Excite_Elem->QueryDoubleAttribute("fc",&fc);
+        exc->SetupGaussianPulse(f0, fc);
+        break;
 	case Excitation::Sinusoidal:  // sinusoidal excite
 		m_Excite_Elem->QueryDoubleAttribute("f0",&f0);
 		exc->SetupSinusoidal(f0);
@@ -889,6 +894,12 @@ void openEMS::SetGaussExcite(double f0, double fc)
 {
 	this->InitExcitation();
 	m_Exc->SetupGaussianPulse(f0, fc);
+}
+
+void openEMS::SetPBCGaussExcite(double f0, double fc)
+{
+    this->InitExcitation();
+    m_Exc->SetupPBCGaussianPulse(f0, fc);
 }
 
 Excitation* openEMS::InitExcitation()

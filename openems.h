@@ -100,6 +100,8 @@ public:
 	bool CheckAbortCond();
 
 	void SetGaussExcite(double f0, double fc);
+    void SetPBCGaussExcite(double f0, double fc);
+
 	Excitation* InitExcitation();
 
 	void SetCSX(ContinuousStructure* csx);

@@ -25,13 +25,13 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Initialize();
 
-   apply_PBC_to_operator(pbc_dirs);
+   //apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Initialize();
 
-    apply_PBC_to_operator(pbc_dirs);
+    //apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 

@@ -157,14 +157,14 @@ void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
             m_Eng->SetVolt(0, posL, cosinus*m_Eng->GetVolt(0,posR) - sinus*volt_im[0][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetVolt(1, posL, cosinus*m_Eng->GetVolt(1,posR) - sinus*volt_im[1][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetVolt(2, posL, cosinus*m_Eng->GetVolt(2,posR) - sinus*volt_im[2][posR[0]][posR[1]][posR[2]]);
-            // apply phases to imaginary parts of the voltage on the right pbc border
-            volt_im[0][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[0] - sinus*tmp_Ure[0];
-            volt_im[1][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[1] - sinus*tmp_Ure[1];
-            volt_im[2][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[2] - sinus*tmp_Ure[2];
-            // apply phases to real parts of the voltage on the right pbc border
-            m_Eng->SetVolt(0, posR, cosinus*tmp_Ure[0] + sinus*tmp_Uim[0]);
-            m_Eng->SetVolt(1, posR, cosinus*tmp_Ure[1] + sinus*tmp_Uim[1]);
-            m_Eng->SetVolt(2, posR, cosinus*tmp_Ure[2] + sinus*tmp_Uim[2]);
+//            // apply phases to imaginary parts of the voltage on the right pbc border
+//            volt_im[0][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[0] - sinus*tmp_Ure[0];
+//            volt_im[1][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[1] - sinus*tmp_Ure[1];
+//            volt_im[2][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Uim[2] - sinus*tmp_Ure[2];
+//            // apply phases to real parts of the voltage on the right pbc border
+//            m_Eng->SetVolt(0, posR, cosinus*tmp_Ure[0] + sinus*tmp_Uim[0]);
+//            m_Eng->SetVolt(1, posR, cosinus*tmp_Ure[1] + sinus*tmp_Uim[1]);
+//            m_Eng->SetVolt(2, posR, cosinus*tmp_Ure[2] + sinus*tmp_Uim[2]);
         }
     }
 };
@@ -223,13 +223,13 @@ void Engine_Ext_Pbc::Apply_CurrPhases_to_dir(unsigned int dir){
             m_Eng->SetCurr(1, posL, cosinus*m_Eng->GetCurr(1,posR) - sinus*curr_im[1][posR[0]][posR[1]][posR[2]]);
             m_Eng->SetCurr(2, posL, cosinus*m_Eng->GetCurr(2,posR) - sinus*curr_im[2][posR[0]][posR[1]][posR[2]]);
             // apply phases to imaginary parts of the voltage on the right pbc border
-            curr_im[0][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[0] - sinus*tmp_Ire[0];
-            curr_im[1][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[1] - sinus*tmp_Ire[1];
-            curr_im[2][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[2] - sinus*tmp_Ire[2];
-            // apply phases to real parts of the voltage on the right pbc border
-            m_Eng->SetCurr(0, posR, cosinus*tmp_Ire[0] + sinus*tmp_Iim[0]);
-            m_Eng->SetCurr(1, posR, cosinus*tmp_Ire[1] + sinus*tmp_Iim[1]);
-            m_Eng->SetCurr(2, posR, cosinus*tmp_Ire[2] + sinus*tmp_Iim[2]);
+//            curr_im[0][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[0] - sinus*tmp_Ire[0];
+//            curr_im[1][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[1] - sinus*tmp_Ire[1];
+//            curr_im[2][posR[0]][posR[1]][posR[2]] = cosinus*tmp_Iim[2] - sinus*tmp_Ire[2];
+//            // apply phases to real parts of the voltage on the right pbc border
+//            m_Eng->SetCurr(0, posR, cosinus*tmp_Ire[0] + sinus*tmp_Iim[0]);
+//            m_Eng->SetCurr(1, posR, cosinus*tmp_Ire[1] + sinus*tmp_Iim[1]);
+//            m_Eng->SetCurr(2, posR, cosinus*tmp_Ire[2] + sinus*tmp_Iim[2]);
         }
     }
 };
