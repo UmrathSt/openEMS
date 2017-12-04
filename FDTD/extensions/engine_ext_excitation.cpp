@@ -109,6 +109,7 @@ void Engine_Ext_Excitation::Apply2Current()
 	int numTS = m_Eng->GetNumberOfTimesteps();
 	unsigned int length = m_Op_Exc->m_Exc->GetLength();
 	FDTD_FLOAT* exc_curr =  m_Op_Exc->m_Exc->GetCurrentSignal();
+    FDTD_FLOAT* exc_curr_s =  m_Op_Exc->m_Exc->GetCurrentSignal_s();
 
 	int p = numTS+1;
 	if (m_Op_Exc->m_Exc->GetSignalPeriod()>0)

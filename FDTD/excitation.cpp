@@ -115,6 +115,10 @@ bool Excitation::buildExcitationSignal(unsigned int maxTS)
 	case Excitation::GaissianPulse:
 		CalcGaussianPulsExcitation(m_f0,m_fc,maxTS);
 		break;
+    case Excitation::PBCGaissianPulse:
+        cout << "excitation.cpp: PBCGaissianPulse calculation" << endl;
+        CalcPBCGaussianPulsExcitation(m_f0,m_fc,maxTS);
+        break;
 	case Excitation::Sinusoidal:
 		CalcSinusExcitation(m_f0,maxTS);
 		break;
@@ -184,6 +188,40 @@ void Excitation::CalcGaussianPulsExcitation(double f0, double fc, int nTS)
 
 	SetNyquistNum( CalcNyquistNum(f0+fc,dT) );
 }
+
+void Excitation::CalcPBCGaussianPulsExcitation(double f0, double fc, int nTS)
+{
+    if (dT==0) return;
+
+    Length = (unsigned int)ceil(2.0 * 9.0/(2.0*PI*fc) / dT);
+    if (Length>(unsigned int)nTS)
+    {
+        cerr << "Operator::CalcPBCGaussianPulsExcitation: Requested excitation pulse would be " << Length << " timesteps or " << Length * dT << " s long. Cutting to max number of timesteps!" << endl;
+        Length=(unsigned int)nTS;
+    }
+    delete[] Signal_volt;
+    delete[] Signal_curr;
+    Signal_volt = new FDTD_FLOAT[Length];
+    Signal_curr = new FDTD_FLOAT[Length];
+    Signal_volt_s = new FDTD_FLOAT[Length];
+    Signal_curr_s = new FDTD_FLOAT[Length];
+    for (unsigned int n=0; n<Length; ++n)
+    {
+        double t = n*dT;
+        Signal_volt[n] = cos(2.0*PI*f0*(t-9.0/(2.0*PI*fc)))*exp(-1*pow(2.0*PI*fc*t/3.0-3,2));
+        Signal_volt_s[n] = sin(2.0*PI*f0*(t-9.0/(2.0*PI*fc)))*exp(-1*pow(2.0*PI*fc*t/3.0-3,2));
+        t += 0.5*dT;
+        Signal_curr[n] = cos(2.0*PI*f0*(t-9.0/(2.0*PI*fc)))*exp(-1*pow(2.0*PI*fc*t/3.0-3,2));
+        Signal_curr_s[n] = sin(2.0*PI*f0*(t-9.0/(2.0*PI*fc)))*exp(-1*pow(2.0*PI*fc*t/3.0-3,2));
+
+    }
+
+    m_foi = f0;
+    m_f_max = f0+fc;
+
+    SetNyquistNum( CalcNyquistNum(f0+fc,dT) );
+}
+
 
 
 

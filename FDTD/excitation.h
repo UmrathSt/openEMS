@@ -77,6 +77,8 @@ public:
 
 	FDTD_FLOAT* GetVoltageSignal() const {return Signal_volt;}
 	FDTD_FLOAT* GetCurrentSignal() const {return Signal_curr;}
+    FDTD_FLOAT* GetVoltageSignal_s() const {return Signal_volt_s;}
+    FDTD_FLOAT* GetCurrentSignal_s() const {return Signal_curr_s;}
 
 protected:
 	double dT;
@@ -88,7 +90,8 @@ protected:
 	unsigned int Length;
 	FDTD_FLOAT* Signal_volt;
 	FDTD_FLOAT* Signal_curr;
-
+    FDTD_FLOAT* Signal_volt_s;
+    FDTD_FLOAT* Signal_curr_s;
 	// center frequency
 	double m_f0;
 
@@ -106,6 +109,8 @@ protected:
 	virtual void CalcCustomExcitation(double f0, int nTS, std::string signal);
 	//! Calculate an excitation with center of \a f0 and the half bandwidth \a fc
 	virtual void CalcGaussianPulsExcitation(double f0, double fc, int nTS);
+    //! Calculate the analogous PBC Pulse exciation
+    virtual void CalcPBCGaussianPulsExcitation(double f0, double fc, int nTS);
 	//! Calculate a sinusoidal excitation with frequency \a f0 and a duration of \a nTS number of timesteps
 	virtual void CalcSinusExcitation(double f0, int nTS);
 	//! Calculate a dirac impuls excitation
