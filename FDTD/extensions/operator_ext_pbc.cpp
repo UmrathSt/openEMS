@@ -266,7 +266,6 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                     {
                         prop = vec_prop.at(p);
                         elec = prop->ToPBCExcitation();
-                        cout << "elec = " << elec->GetWeightedExcitation(n,volt_coord,1) << endl;
                         if (elec==NULL)
                             continue;
                         if (prop->CheckCoordInPrimitive(volt_coord,priority,true))
