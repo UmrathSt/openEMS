@@ -236,6 +236,8 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
         cerr << "Operator::CalcFieldExcitation: Warning, no PBC excitation properties found" << endl;
         return false;
     }
+    cout << "operator_ext_pbc.cpp: build Extension: I am now trying to read the Excitation information from the xml file" << endl;
+    cout << "the size of vec_prop is: " << vec_prop.size() << endl;
 
     CSPropPBCExcitation* elec=NULL;
     CSProperties* prop=NULL;
@@ -264,6 +266,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                     {
                         prop = vec_prop.at(p);
                         elec = prop->ToPBCExcitation();
+                        cout << "elec = " << elec->GetWeightedExcitation(n,volt_coord,1) << endl;
                         if (elec==NULL)
                             continue;
                         if (prop->CheckCoordInPrimitive(volt_coord,priority,true))
@@ -282,6 +285,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                                     volt_vIndex[0].push_back(pos[0]);
                                     volt_vIndex[1].push_back(pos[1]);
                                     volt_vIndex[2].push_back(pos[2]);
+                                    cout << "operator_ext_pbc.cpp Build_PBCExcitation ..." << endl;
                                 }
                                 if (elec->GetExcitType()==1) //hard excite
                                 {
