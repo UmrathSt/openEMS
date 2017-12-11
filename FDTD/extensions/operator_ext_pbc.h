@@ -22,6 +22,11 @@ public:
     virtual Operator_Extension* Clone(Operator* op);
     // sets the phase difference between opposite sides of the periodic structure
     // Example: periodicity (exp(i * k * r) in x-direction only -> m_k_PBC = {1, 0, 0};
+    void setupCurrentExcitation( vector<unsigned int> const curr_vIndex[3], vector<FDTD_FLOAT> const& curr_vExcit_sin,
+            vector<FDTD_FLOAT> const& curr_vExcit_cos, vector<unsigned int> const& curr_vDelay, vector<unsigned int> const& curr_vDir );
+    void setupVoltageExcitation( vector<unsigned int> const volt_vIndex[3], vector<FDTD_FLOAT> const& volt_vExcit,
+            vector<FDTD_FLOAT> const& volt_vExcit_cos, vector<unsigned int> const& volt_vDelay, vector<unsigned int> const& volt_vDir );
+    bool Build_PBCExcitation();
     void apply_PBC_to_operator(bool *dirs);
     void Set_k_pbc(FDTD_FLOAT *k_pbc);
     void Set_pbc_dirs(bool *dirs);
@@ -33,16 +38,38 @@ public:
 
     virtual string GetExtensionName() const {return string("PeriodicBoundaryCondition Extension");}
 
+    virtual void ShowStat(ostream &ostr) const;
+
 protected:
     Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext);
-    void Initialize();
+    void Init();
+    void Reset();
     unsigned int m_numLines[3];
     unsigned int pos[3];
     int m_ny;
     int m_nyP,m_nyPP;
     bool pbc_dirs[6] = {0};
     FDTD_FLOAT k_pbc[3] = {0};
-    Excitation * m_Exc;
+    bool pbc_used = true;
+
+    Excitation* m_Exc;
+    //E-Field/voltage Excitation
+    unsigned int Volt_Count;
+    unsigned int Volt_Count_Dir[3];
+    unsigned int* Volt_index[3];
+    unsigned short* Volt_dir;
+    FDTD_FLOAT* Volt_amp_sin; //represented as edge-voltages!!
+    FDTD_FLOAT* Volt_amp_cos; //represented as edge-voltages!!
+    unsigned int* Volt_delay;
+
+    //H-Field/current Excitation
+    unsigned int Curr_Count;
+    unsigned int Curr_Count_Dir[3];
+    unsigned int* Curr_index[3];
+    unsigned short* Curr_dir;
+    FDTD_FLOAT* Curr_amp_cos; //represented as edge-currents!!
+    FDTD_FLOAT* Curr_amp_sin; //represented as edge-currents!!
+    unsigned int* Curr_delay;
 
 };
 

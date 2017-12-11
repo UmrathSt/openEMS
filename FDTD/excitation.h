@@ -25,7 +25,7 @@
 class Excitation
 {
 public:
-    enum ExciteTypes {UNDEFINED=-1, GaissianPulse=0, Sinusoidal=1, DiracPulse=2, Step=3, PBCGaissianPulse=4, CustomExcite=10};
+    enum ExciteTypes {UNDEFINED=-1, GaussianPulse=0, Sinusoidal=1, DiracPulse=2, Step=3, PBCGaussianPulse=4, CustomExcite=10};
 	Excitation();
 	virtual ~Excitation();
 

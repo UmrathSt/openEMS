@@ -840,12 +840,12 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
 	m_Excite_Elem->QueryIntAttribute("Type",&ihelp);
 	switch (ihelp)
 	{
-	case Excitation::GaissianPulse:
+    case Excitation::GaussianPulse:
 		m_Excite_Elem->QueryDoubleAttribute("f0",&f0);
 		m_Excite_Elem->QueryDoubleAttribute("fc",&fc);
 		exc->SetupGaussianPulse(f0, fc);
 		break;
-    case Excitation::PBCGaissianPulse:
+    case Excitation::PBCGaussianPulse:
         m_Excite_Elem->QueryDoubleAttribute("f0",&f0);
         m_Excite_Elem->QueryDoubleAttribute("fc",&fc);
         exc->SetupPBCGaussianPulse(f0, fc);
@@ -1039,7 +1039,7 @@ int openEMS::SetupFDTD()
         Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
         op_ext_pbc->Set_k_pbc(k_pbc);
         op_ext_pbc->Set_pbc_dirs(direction_is_pbc);
-        op_ext_pbc->Initialize();
+        op_ext_pbc->Init();
         FDTD_Op->AddExtension(op_ext_pbc);
         cout << "openems.cpp: Added Operator_Ext_Pbc extension to FDTD Operator" << endl;
     }

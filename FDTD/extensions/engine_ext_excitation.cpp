@@ -129,7 +129,7 @@ void Engine_Ext_Excitation::Apply2Current()
 				ny = m_Op_Exc->Curr_dir[n];
 				pos[0]=m_Op_Exc->Curr_index[0][n];
 				pos[1]=m_Op_Exc->Curr_index[1][n];
-				pos[2]=m_Op_Exc->Curr_index[2][n];
+                pos[2]=m_Op_Exc->Curr_index[2][n]; // exc_curr[n] is the excitation cos(omega*t)*exp(-t**2*...) at time n*dT
 				m_Eng->Engine::SetCurr(ny,pos, m_Eng->Engine::GetCurr(ny,pos) + m_Op_Exc->Curr_amp[n]*exc_curr[exc_pos]);
 			}
 			break;

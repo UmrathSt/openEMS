@@ -55,7 +55,7 @@ void Excitation::Reset( double timestep )
 
 bool Excitation::SetupGaussianPulse(double f0, double fc)
 {
-	m_Excit_Type = Excitation::GaissianPulse;
+    m_Excit_Type = Excitation::GaussianPulse;
 	m_f0 = f0;
 	m_fc = fc;
 	m_f_max = f0+fc;
@@ -64,7 +64,7 @@ bool Excitation::SetupGaussianPulse(double f0, double fc)
 
 bool Excitation::SetupPBCGaussianPulse(double f0, double fc)
 {
-    m_Excit_Type = Excitation::PBCGaissianPulse;
+    m_Excit_Type = Excitation::PBCGaussianPulse;
     m_f0 = f0;
     m_fc = fc;
     m_f_max = f0+fc;
@@ -112,11 +112,11 @@ bool Excitation::buildExcitationSignal(unsigned int maxTS)
 
 	switch (m_Excit_Type)
 	{
-	case Excitation::GaissianPulse:
+    case Excitation::GaussianPulse:
 		CalcGaussianPulsExcitation(m_f0,m_fc,maxTS);
 		break;
-    case Excitation::PBCGaissianPulse:
-        cout << "excitation.cpp: PBCGaissianPulse calculation" << endl;
+    case Excitation::PBCGaussianPulse:
+        cout << "excitation.cpp: PBCGaussianPulse calculation" << endl;
         CalcPBCGaussianPulsExcitation(m_f0,m_fc,maxTS);
         break;
 	case Excitation::Sinusoidal:

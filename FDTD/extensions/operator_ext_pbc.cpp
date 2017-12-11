@@ -20,28 +20,90 @@
 
 #include "tools/array_ops.h"
 #include "CSPropMaterial.h"
+#include "ContinuousStructure.h"
+#include "CSPrimCurve.h"
+#include "CSPropPBCExcitation.h"
+#include "CSPropExcitation.h"
 
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
-   Initialize();
+   Init();
 
    //apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
-    Initialize();
+    Init();
 
     //apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
-void Operator_Ext_Pbc::Initialize()
+
+
+void Operator_Ext_Pbc::Init()
 {
+    m_Exc = m_Op->GetExcitationSignal();
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
     apply_PBC_to_operator(pbc_dirs);
     cout << "operator_ext_pbc.cpp: Initialize()... the pbcs have been applied to the main operator " << endl;
+    Operator_Extension::Init();
+    Volt_delay = 0;
+    Volt_amp_sin = 0; // time dependence
+    Volt_amp_cos = 0;
+    Volt_dir = 0;
+    Volt_Count = 0;
+    Curr_delay = 0;
+    Curr_amp_sin = 0;
+    Curr_amp_cos = 0;
+    Curr_dir = 0;
+    Curr_Count = 0;
+
+    for (int n=0; n<3; ++n)
+    {
+        Volt_index[n] = 0;
+        Curr_index[n] = 0;
+        Volt_Count_Dir[n] = 0;
+        Curr_Count_Dir[n] = 0;
+    }
+    BuildExtension();
+}
+
+void Operator_Ext_Pbc::Reset()
+{
+    Operator_Extension::Reset();
+    delete[] Volt_delay;
+    Volt_delay = 0;
+    delete[] Volt_dir;
+    Volt_dir = 0;
+    delete[] Volt_amp_sin;
+    Volt_amp_sin = 0;
+    delete[] Volt_amp_cos;
+    Volt_amp_cos = 0;
+    delete[] Curr_delay;
+    Curr_delay = 0;
+    delete[] Curr_dir;
+    Curr_dir = 0;
+    delete[] Curr_amp_sin;
+    Curr_amp_sin = 0;
+    delete[] Curr_amp_cos;
+    Curr_amp_cos = 0;
+
+    Volt_Count = 0;
+    Curr_Count = 0;
+
+    for (int n=0; n<3; ++n)
+    {
+        delete[] Volt_index[n];
+        Volt_index[n] = 0;
+        delete[] Curr_index[n];
+        Curr_index[n] = 0;
+
+        Volt_Count_Dir[n] = 0;
+        Curr_Count_Dir[n] = 0;
+    }
 }
 void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
 {
@@ -126,7 +188,8 @@ void Operator_Ext_Pbc::Set_pbc_dirs(bool *dirs){
 
 bool Operator_Ext_Pbc::BuildExtension()
 {
-    m_Exc = m_Op->GetExcitationSignal();
+    Operator_Ext_Pbc::Build_PBCExcitation();
+    cout << "operator_ext_pbc.cpp: BuildExtension, m_Exc.name: " << m_Exc->GetExciteType() << endl;
     unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
     if (m_Op->k_pbc[0] == 0 && m_Op->k_pbc[1] == 0 && m_Op->k_pbc[2] == 0)
@@ -135,4 +198,289 @@ bool Operator_Ext_Pbc::BuildExtension()
         return false;
     }
     return true;
+}
+
+bool Operator_Ext_Pbc::Build_PBCExcitation()
+{
+    cout << "operator_ext_pbc.cpp: Build_PBCExcitation was called" << endl;
+    double dT = m_Op->GetTimestep();
+    if (dT==0)
+        return false;
+    if (m_Exc==0)
+        return false;
+
+    Reset();
+    ContinuousStructure* CSX = m_Op->GetGeometryCSX();
+
+    unsigned int pos[3];
+    double amp_cos=0;
+    double amp_sin=0;
+    vector<unsigned int> volt_vIndex[3];
+    vector<FDTD_FLOAT> volt_vExcit_sin;
+    vector<FDTD_FLOAT> volt_vExcit_cos;
+    vector<unsigned int> volt_vDelay;
+    vector<unsigned int> volt_vDir;
+    double volt_coord[3];
+
+    vector<unsigned int> curr_vIndex[3];
+    vector<FDTD_FLOAT> curr_vExcit_sin;
+    vector<FDTD_FLOAT> curr_vExcit_cos;
+    vector<unsigned int> curr_vDelay;
+    vector<unsigned int> curr_vDir;
+    double curr_coord[3];
+
+    vector<CSProperties*> vec_prop = CSX->GetPropertyByType(CSProperties::PBCEXCITATION);
+
+    if (vec_prop.size()==0)
+    {
+        cerr << "Operator::CalcFieldExcitation: Warning, no PBC excitation properties found" << endl;
+        return false;
+    }
+
+    CSPropPBCExcitation* elec=NULL;
+    CSProperties* prop=NULL;
+    int priority=0;
+
+    unsigned int numLines[] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
+
+    for (pos[2]=0; pos[2]<numLines[2]; ++pos[2])
+    {
+        for (pos[1]=0; pos[1]<numLines[1]; ++pos[1])
+        {
+            for (pos[0]=0; pos[0]<numLines[0]; ++pos[0])
+            {
+                //electric field excite
+                for (int n=0; n<3; ++n)
+                {
+                    if (m_Op->GetYeeCoords(n,pos,volt_coord,false)==false)
+                        continue;
+                    if (m_CC_R0_included && (n==2) && (pos[0]==0))
+                        volt_coord[1] = m_Op->GetDiscLine(1,0);
+
+                    if (m_CC_R0_included && (n==1) && (pos[0]==0))
+                        continue;
+
+                    for (size_t p=0; p<vec_prop.size(); ++p)
+                    {
+                        prop = vec_prop.at(p);
+                        elec = prop->ToPBCExcitation();
+                        if (elec==NULL)
+                            continue;
+                        if (prop->CheckCoordInPrimitive(volt_coord,priority,true))
+                        {
+                            if ((elec->GetActiveDir(n)) && ( (elec->GetExcitType()==0) || (elec->GetExcitType()==1) ))//&& (pos[n]<numLines[n]-1))
+                            {
+                                amp_sin = elec->GetWeightedExcitation(n,volt_coord,1)*m_Op->GetEdgeLength(n,pos);// delta[n]*gridDelta;
+                                amp_cos = elec->GetWeightedExcitation(n,volt_coord,0)*m_Op->GetEdgeLength(n,pos);// delta[n]*gridDelta;
+
+                                if (amp_sin!=0 && amp_cos!=0)
+                                {
+                                    volt_vExcit_sin.push_back(amp_sin);
+                                    volt_vExcit_cos.push_back(amp_cos);
+                                    volt_vDelay.push_back((unsigned int)(elec->GetDelay()/dT));
+                                    volt_vDir.push_back(n);
+                                    volt_vIndex[0].push_back(pos[0]);
+                                    volt_vIndex[1].push_back(pos[1]);
+                                    volt_vIndex[2].push_back(pos[2]);
+                                }
+                                if (elec->GetExcitType()==1) //hard excite
+                                {
+                                    m_Op->SetVV(n,pos[0],pos[1],pos[2], 0 );
+                                    m_Op->SetVI(n,pos[0],pos[1],pos[2], 0 );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //magnetic field excite
+                for (int n=0; n<3; ++n)
+                {
+                    if ((pos[0]>=numLines[0]-1) || (pos[1]>=numLines[1]-1) || (pos[2]>=numLines[2]-1))
+                        continue;  //skip the last H-Line which is outside the FDTD-domain
+                    if (m_Op->GetYeeCoords(n,pos,curr_coord,true)==false)
+                        continue;
+                    for (size_t p=0; p<vec_prop.size(); ++p)
+                    {
+                        prop = vec_prop.at(p);
+                        elec = prop->ToPBCExcitation();
+                        if (elec==NULL)
+                            continue;
+                        if (prop->CheckCoordInPrimitive(curr_coord,priority,true))
+                        {
+                            if ((elec->GetActiveDir(n)) && ( (elec->GetExcitType()==2) || (elec->GetExcitType()==3) ))
+                            {
+                                amp_sin = elec->GetWeightedExcitation(n,curr_coord,1)*m_Op->GetEdgeLength(n,pos,true);// delta[n]*gridDelta;
+                                amp_cos = elec->GetWeightedExcitation(n,curr_coord,0)*m_Op->GetEdgeLength(n,pos,true);// delta[n]*gridDelta;
+
+                                if (amp_cos!=0 && amp_sin!=0)
+                                {
+                                    curr_vExcit_sin.push_back(amp_sin);
+                                    curr_vExcit_cos.push_back(amp_cos);
+                                    curr_vDelay.push_back((unsigned int)(elec->GetDelay()/dT));
+                                    curr_vDir.push_back(n);
+                                    curr_vIndex[0].push_back(pos[0]);
+                                    curr_vIndex[1].push_back(pos[1]);
+                                    curr_vIndex[2].push_back(pos[2]);
+                                }
+                                if (elec->GetExcitType()==3) //hard excite
+                                {
+                                    m_Op->SetII(n,pos[0],pos[1],pos[2], 0 );
+                                    m_Op->SetIV(n,pos[0],pos[1],pos[2], 0 );
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    //special treatment for primitives of type curve (treated as wires) see also Calc_PEC
+    double p1[3];
+    double p2[3];
+    Grid_Path path;
+    for (size_t p=0; p<vec_prop.size(); ++p)
+    {
+        prop = vec_prop.at(p);
+        elec = prop->ToPBCExcitation();
+        for (size_t n=0; n<prop->GetQtyPrimitives(); ++n)
+        {
+            CSPrimitives* prim = prop->GetPrimitive(n);
+            CSPrimCurve* curv = prim->ToCurve();
+            if (curv)
+            {
+                for (size_t i=1; i<curv->GetNumberOfPoints(); ++i)
+                {
+                    curv->GetPoint(i-1,p1,m_Op->m_MeshType);
+                    curv->GetPoint(i,p2,m_Op->m_MeshType);
+                    path = m_Op->FindPath(p1,p2);
+                    if (path.dir.size()>0)
+                        prim->SetPrimitiveUsed(true);
+                    for (size_t t=0; t<path.dir.size(); ++t)
+                    {
+                        n = path.dir.at(t);
+                        pos[0] = path.posPath[0].at(t);
+                        pos[1] = path.posPath[1].at(t);
+                        pos[2] = path.posPath[2].at(t);
+                        m_Op->GetYeeCoords(n,pos,volt_coord,false);
+                        if (elec!=NULL)
+                        {
+                            if ((elec->GetActiveDir(n)) && (pos[n]<numLines[n]-1) && ( (elec->GetExcitType()==0) || (elec->GetExcitType()==1) ))
+                            {
+                                amp_sin = elec->GetWeightedExcitation(n,volt_coord,1)*m_Op->GetEdgeLength(n,pos);
+                                amp_cos = elec->GetWeightedExcitation(n,volt_coord,0)*m_Op->GetEdgeLength(n,pos);
+                                if (amp_sin!=0 && amp_cos!=0)
+                                {
+                                    volt_vExcit_sin.push_back(amp_sin);
+                                    volt_vExcit_cos.push_back(amp_cos);
+                                    volt_vDelay.push_back((unsigned int)(elec->GetDelay()/dT));
+                                    volt_vDir.push_back(n);
+                                    volt_vIndex[0].push_back(pos[0]);
+                                    volt_vIndex[1].push_back(pos[1]);
+                                    volt_vIndex[2].push_back(pos[2]);
+                                }
+                                if (elec->GetExcitType()==1) //hard excite
+                                {
+                                    m_Op->SetVV(n,pos[0],pos[1],pos[2], 0 );
+                                    m_Op->SetVI(n,pos[0],pos[1],pos[2], 0 );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // set voltage excitations
+    setupVoltageExcitation( volt_vIndex, volt_vExcit_sin, volt_vExcit_cos, volt_vDelay, volt_vDir );
+
+    // set current excitations
+    setupCurrentExcitation( curr_vIndex, curr_vExcit_sin, curr_vExcit_cos, curr_vDelay, curr_vDir );
+
+    return true;
+}
+
+
+void Operator_Ext_Pbc::setupVoltageExcitation( vector<unsigned int> const volt_vIndex[3], vector<FDTD_FLOAT> const& volt_vExcit_sin,
+        vector<FDTD_FLOAT> const& volt_vExcit_cos, vector<unsigned int> const& volt_vDelay, vector<unsigned int> const& volt_vDir )
+{
+    Volt_Count = volt_vIndex[0].size();
+    for (int n=0; n<3; n++)
+    {
+        Volt_Count_Dir[n]=0;
+        delete[] Volt_index[n];
+        Volt_index[n] = new unsigned int[Volt_Count];
+    }
+    delete[] Volt_delay;
+    delete[] Volt_amp_sin;
+    delete[] Volt_amp_cos;
+    delete[] Volt_dir;
+    Volt_delay = new unsigned int[Volt_Count];
+    Volt_amp_sin = new FDTD_FLOAT[Volt_Count];
+    Volt_amp_cos = new FDTD_FLOAT[Volt_Count];
+    Volt_dir = new unsigned short[Volt_Count];
+
+//	cerr << "Excitation::setupVoltageExcitation(): Number of voltage excitation points: " << Volt_Count << endl;
+//	if (Volt_Count==0)
+//		cerr << "No E-Field/voltage excitation found!" << endl;
+    for (int n=0; n<3; n++)
+        for (unsigned int i=0; i<Volt_Count; i++)
+            Volt_index[n][i] = volt_vIndex[n].at(i);
+    for (unsigned int i=0; i<Volt_Count; i++)
+    {
+        Volt_delay[i] = volt_vDelay.at(i);
+        Volt_amp_sin[i]   = volt_vExcit_sin.at(i);
+        Volt_amp_cos[i]   = volt_vExcit_cos.at(i);
+        Volt_dir[i]   = volt_vDir.at(i);
+        ++Volt_Count_Dir[Volt_dir[i]];
+    }
+}
+
+void Operator_Ext_Pbc::setupCurrentExcitation( vector<unsigned int> const curr_vIndex[3], vector<FDTD_FLOAT> const& curr_vExcit_sin,
+        vector<FDTD_FLOAT> const& curr_vExcit_cos, vector<unsigned int> const& curr_vDelay, vector<unsigned int> const& curr_vDir )
+{
+    Curr_Count = curr_vIndex[0].size();
+    for (int n=0; n<3; n++)
+    {
+        Curr_Count_Dir[n]=0;
+        delete[] Curr_index[n];
+        Curr_index[n] = new unsigned int[Curr_Count];
+    }
+    delete[] Curr_delay;
+    delete[] Curr_amp_sin;
+    delete[] Curr_amp_cos;
+    delete[] Curr_dir;
+    Curr_delay = new unsigned int[Curr_Count];
+    Curr_amp_sin = new FDTD_FLOAT[Curr_Count];
+    Curr_amp_cos = new FDTD_FLOAT[Curr_Count];
+    Curr_dir = new unsigned short[Curr_Count];
+
+//	cerr << "Excitation::setupCurrentExcitation(): Number of current excitation points: " << Curr_Count << endl;
+//	if (Curr_Count==0)
+//		cerr << "No H-Field/current excitation found!" << endl;
+    for (int n=0; n<3; ++n)
+        for (unsigned int i=0; i<Curr_Count; i++)
+            Curr_index[n][i] = curr_vIndex[n].at(i);
+    for (unsigned int i=0; i<Curr_Count; i++)
+    {
+        Curr_delay[i] = curr_vDelay.at(i);
+        Curr_amp_sin[i]   = curr_vExcit_sin.at(i);
+        Curr_amp_cos[i]   = curr_vExcit_cos.at(i);
+        Curr_dir[i]   = curr_vDir.at(i);
+        ++Curr_Count_Dir[Curr_dir[i]];
+    }
+
+}
+void Operator_Ext_Pbc::ShowStat(ostream &ostr)  const
+{
+    Operator_Extension::ShowStat(ostr);
+    cout << "Sin Voltage excitations\t: " << Volt_Count    << "\t (" << Volt_Count_Dir[0] << ", " << Volt_Count_Dir[1] << ", " << Volt_Count_Dir[2] << ")" << endl;
+    cout << "Cos Voltage excitations\t: " << Volt_Count    << "\t (" << Volt_Count_Dir[0] << ", " << Volt_Count_Dir[1] << ", " << Volt_Count_Dir[2] << ")" << endl;
+    cout << "Sin Current excitations\t: " << Curr_Count << "\t (" << Curr_Count_Dir[0] << ", " << Curr_Count_Dir[1] << ", " << Curr_Count_Dir[2] << ")" << endl;
+    cout << "Cos Current excitations\t: " << Curr_Count << "\t (" << Curr_Count_Dir[0] << ", " << Curr_Count_Dir[1] << ", " << Curr_Count_Dir[2] << ")" << endl;
+    cout << "Excitation Length (TS)\t: " << m_Exc->GetLength() << endl;
+    cout << "Excitation Length (s)\t: " << m_Exc->GetLength()*m_Op->GetTimestep() << endl;
 }
