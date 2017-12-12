@@ -212,7 +212,8 @@ void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
     int p = numTS+1;
     if (m_Op_Pbc->m_Exc->GetSignalPeriod()>0)
         p = int(m_Op_Pbc->m_Exc->GetSignalPeriod()/m_Op_Pbc->m_Exc->GetTimestep());
-
+//    cout << "engine_ext_pbc.cpp: Before Current excitation loop" << endl;
+//    cout << "Volt_Count = " << m_Op_Pbc->Volt_Count << endl;
     //switch for different engine types to access faster inline engine functions
     switch (m_Eng->GetType())
     {
@@ -230,6 +231,7 @@ void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
                 pos[2]=m_Op_Pbc->Curr_index[2][n];
                 m_Eng->Engine::SetCurr(ny,pos, m_Eng->Engine::GetCurr(ny,pos) + m_Op_Pbc->Curr_amp_sin[n]*exc_curr_sin[exc_pos]
                                                                               + m_Op_Pbc->Curr_amp_cos[n]*exc_curr_cos[exc_pos]);
+                cout << "engine_ext_pbc doing real current excitation " << m_Op_Pbc->Curr_amp_cos[n]*exc_curr_cos[exc_pos] << endl;
             }
             break;
         }

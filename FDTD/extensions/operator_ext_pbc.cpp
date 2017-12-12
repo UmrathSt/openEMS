@@ -43,12 +43,12 @@ Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
 void Operator_Ext_Pbc::Init()
 {
+    cout << "operator_ext_pbc.cpp: Called Init()" << endl;
     m_Exc = m_Op->GetExcitationSignal();
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
     apply_PBC_to_operator(pbc_dirs);
-    cout << "operator_ext_pbc.cpp: Initialize()... the pbcs have been applied to the main operator " << endl;
     Operator_Extension::Init();
     Volt_delay = 0;
     Volt_amp_sin = 0; // time dependence
@@ -188,8 +188,8 @@ void Operator_Ext_Pbc::Set_pbc_dirs(bool *dirs){
 
 bool Operator_Ext_Pbc::BuildExtension()
 {
-    Operator_Ext_Pbc::Build_PBCExcitation();
-    cout << "operator_ext_pbc.cpp: BuildExtension, m_Exc.name: " << m_Exc->GetExciteType() << endl;
+    Build_PBCExcitation();
+
     unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
     if (m_Op->k_pbc[0] == 0 && m_Op->k_pbc[1] == 0 && m_Op->k_pbc[2] == 0)
@@ -202,7 +202,7 @@ bool Operator_Ext_Pbc::BuildExtension()
 
 bool Operator_Ext_Pbc::Build_PBCExcitation()
 {
-    cout << "operator_ext_pbc.cpp: Build_PBCExcitation was called" << endl;
+
     double dT = m_Op->GetTimestep();
     if (dT==0)
         return false;
@@ -236,13 +236,10 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
         cerr << "Operator::CalcFieldExcitation: Warning, no PBC excitation properties found" << endl;
         return false;
     }
-    cout << "operator_ext_pbc.cpp: build Extension: I am now trying to read the Excitation information from the xml file" << endl;
-    cout << "the size of vec_prop is: " << vec_prop.size() << endl;
 
     CSPropPBCExcitation* elec=NULL;
     CSProperties* prop=NULL;
     int priority=0;
-
     unsigned int numLines[] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
     for (pos[2]=0; pos[2]<numLines[2]; ++pos[2])
@@ -254,6 +251,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                 //electric field excite
                 for (int n=0; n<3; ++n)
                 {
+
                     if (m_Op->GetYeeCoords(n,pos,volt_coord,false)==false)
                         continue;
                     if (m_CC_R0_included && (n==2) && (pos[0]==0))
@@ -261,21 +259,20 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
 
                     if (m_CC_R0_included && (n==1) && (pos[0]==0))
                         continue;
-
                     for (size_t p=0; p<vec_prop.size(); ++p)
                     {
                         prop = vec_prop.at(p);
                         elec = prop->ToPBCExcitation();
-                        if (elec==NULL)
+                        if (elec==NULL){
                             continue;
+                        }
                         if (prop->CheckCoordInPrimitive(volt_coord,priority,true))
-                        {
+                        {                            
                             if ((elec->GetActiveDir(n)) && ( (elec->GetExcitType()==0) || (elec->GetExcitType()==1) ))//&& (pos[n]<numLines[n]-1))
                             {
                                 amp_sin = elec->GetWeightedExcitation(n,volt_coord,1)*m_Op->GetEdgeLength(n,pos);// delta[n]*gridDelta;
                                 amp_cos = elec->GetWeightedExcitation(n,volt_coord,0)*m_Op->GetEdgeLength(n,pos);// delta[n]*gridDelta;
-
-                                if (amp_sin!=0 && amp_cos!=0)
+                                if (amp_sin!=0 || amp_cos!=0)
                                 {
                                     volt_vExcit_sin.push_back(amp_sin);
                                     volt_vExcit_cos.push_back(amp_cos);
@@ -284,15 +281,15 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                                     volt_vIndex[0].push_back(pos[0]);
                                     volt_vIndex[1].push_back(pos[1]);
                                     volt_vIndex[2].push_back(pos[2]);
-                                    cout << "operator_ext_pbc.cpp Build_PBCExcitation ..." << endl;
                                 }
+
                                 if (elec->GetExcitType()==1) //hard excite
                                 {
                                     m_Op->SetVV(n,pos[0],pos[1],pos[2], 0 );
                                     m_Op->SetVI(n,pos[0],pos[1],pos[2], 0 );
                                 }
                             }
-                        }
+                    }
                     }
                 }
 
@@ -348,6 +345,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
     {
         prop = vec_prop.at(p);
         elec = prop->ToPBCExcitation();
+
         for (size_t n=0; n<prop->GetQtyPrimitives(); ++n)
         {
             CSPrimitives* prim = prop->GetPrimitive(n);
@@ -374,6 +372,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                             {
                                 amp_sin = elec->GetWeightedExcitation(n,volt_coord,1)*m_Op->GetEdgeLength(n,pos);
                                 amp_cos = elec->GetWeightedExcitation(n,volt_coord,0)*m_Op->GetEdgeLength(n,pos);
+
                                 if (amp_sin!=0 && amp_cos!=0)
                                 {
                                     volt_vExcit_sin.push_back(amp_sin);
@@ -411,6 +410,9 @@ void Operator_Ext_Pbc::setupVoltageExcitation( vector<unsigned int> const volt_v
         vector<FDTD_FLOAT> const& volt_vExcit_cos, vector<unsigned int> const& volt_vDelay, vector<unsigned int> const& volt_vDir )
 {
     Volt_Count = volt_vIndex[0].size();
+    cout << "---------------------" << endl;
+    cout << "Operator_ext_Pbc::setupVoltageExcitation: Volt_count = " << Volt_Count << endl;
+    cout << "---------------------" << endl;
     for (int n=0; n<3; n++)
     {
         Volt_Count_Dir[n]=0;

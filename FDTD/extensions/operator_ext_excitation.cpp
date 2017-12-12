@@ -160,9 +160,11 @@ bool Operator_Ext_Excitation::BuildExtension()
 					{
 						prop = vec_prop.at(p);
 						elec = prop->ToExcitation();
-						if (elec==NULL)
+                        if (elec==NULL){
 							continue;
+                        }
 						if (prop->CheckCoordInPrimitive(volt_coord,priority,true))
+
 						{
 							if ((elec->GetActiveDir(n)) && ( (elec->GetExcitType()==0) || (elec->GetExcitType()==1) ))//&& (pos[n]<numLines[n]-1))
 							{
