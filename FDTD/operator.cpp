@@ -2057,7 +2057,6 @@ Operator_Ext_Excitation* Operator::GetExcitationExtension() const
 void Operator::AddExtension(Operator_Extension* op_ext)
 {
 	m_Op_exts.push_back(op_ext);
-    cout << "operator.cpp: Added Extension with name: " << op_ext->GetExtensionName() << endl;
 }
 
 void Operator::DeleteExtension(Operator_Extension* op_ext)

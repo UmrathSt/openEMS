@@ -15,11 +15,19 @@ Engine_Ext_Pbc::Engine_Ext_Pbc(Operator_Ext_Pbc* op_ext) : Engine_Extension(op_e
 {
     m_Op_Pbc = op_ext;
     k_pbc = m_Op_Pbc->k_pbc;
+    sin_kx = sin(k_pbc[0]);
+    cos_kx = cos(k_pbc[0]);
+    sin_ky = sin(k_pbc[1]);
+    cos_ky = cos(k_pbc[1]);
+    cos_kxy = cos(k_pbc[1] + k_pbc[0]);
+    sin_kxy = sin(k_pbc[1] + k_pbc[0]);
     cout << "engine_ext_pbc.cpp: called the constructor" << endl;
     cout << "engine_ext_pbc.cpp: kx,ky,kz=" << k_pbc[0] << "," << k_pbc[1] << "," << k_pbc[2] << endl;
     m_numLines[0] = m_Op_Pbc->m_numLines[0];
     m_numLines[1] = m_Op_Pbc->m_numLines[1];
     m_numLines[2] = m_Op_Pbc->m_numLines[2];
+    maxX = m_numLines[0]-1;
+    maxY = m_numLines[1]-1;
     volt_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // imaginary parts of
     curr_im = Create_N_3DArray<FDTD_FLOAT>(m_numLines); // voltage/current as (3, Nx, Ny, Nz) array of floats
     SetNumberOfThreads(1);
@@ -48,13 +56,64 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 
 void Engine_Ext_Pbc::Apply2Voltages(){
 
+    // use peridic boundary condition to obtain the current values which are outside the FDTD domain
+    pos[0]=0;
+    for (pos[2]=0; pos[2]<m_numLines[2]; ++pos[2]){// moved the case y = pos[1] = 0 outside the loop
+        pos[1] = 0;
+        curr_im_outside[0] = cos_kxy*curr_im[0][maxX][maxY][pos[2]] + sin_kxy*m_Eng->GetCurr(0,maxX,maxY,pos[2]);
+        curr_im_outside[1] = cos_kxy*curr_im[1][maxX][maxY][pos[2]] + sin_kxy*m_Eng->GetCurr(1,maxX,maxY,pos[2]);
+        curr_im_outside[2] = cos_kxy*curr_im[2][maxX][maxY][pos[2]] + sin_kxy*m_Eng->GetCurr(2,maxX,maxY,pos[2]);
+        curr_outside[0] = cos_kxy*m_Eng->GetCurr(0,maxX,maxY,pos[2]) - sin_kxy*curr_im[0][maxX][maxY][pos[2]];
+        curr_outside[1] = cos_kxy*m_Eng->GetCurr(1,maxX,maxY,pos[2]) - sin_kxy*curr_im[1][maxX][maxY][pos[2]];
+        curr_outside[2] = cos_kxy*m_Eng->GetCurr(2,maxX,maxY,pos[2]) - sin_kxy*curr_im[2][maxX][maxY][pos[2]];
+        volt_im[0][maxX][maxY][pos[2]] *= m_Op_Pbc->GetVV(0,maxX,maxY,pos[2]);
+        volt_im[0][maxX][maxY][pos[2]] += m_Op_Pbc->GetVI(0,maxX,maxY,pos[2]) * (curr_im[2][maxX][maxY][pos[2]] - curr_im_outside[2] - curr_im[1][maxX][maxY][pos[2]] + curr_im_outside[1]);
+        m_Eng->SetVolt(0,maxX,maxY,pos[2], m_Eng->GetVolt(0,maxX,maxY,pos[2]) +m_Op_Pbc->GetVI(0,maxX,maxY,pos[2]) * (
+                    m_Eng->GetCurr(2,maxX,maxY,pos[2]) - curr_outside[2] - m_Eng->GetCurr(1,maxX,maxY,pos[2]) + curr_outside[1]));
+        //for y
+        volt_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(1,pos[0],pos[1],pos[2]);
+        volt_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im_outside[0] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im_outside[2]);
+        m_Eng->SetVolt(1,maxX,maxY,pos[2], m_Eng->GetVolt(1,maxX,maxY,pos[2]) +m_Op_Pbc->GetVI(1,maxX,maxY,pos[2]) * (
+                    m_Eng->GetCurr(0,maxX,maxY,pos[2]) - curr_outside[0] - m_Eng->GetCurr(2,maxX,maxY,pos[2]) + curr_outside[2]));
+        //for z
+        volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(2,pos[0],pos[1],pos[2]);
+        volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im_outside[1] - curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im_outside[0]);
+        m_Eng->SetVolt(2,maxX,maxY,pos[2], m_Eng->GetVolt(2,maxX,maxY,pos[2]) +m_Op_Pbc->GetVI(2,maxX,maxY,pos[2]) * (
+                    m_Eng->GetCurr(1,maxX,maxY,pos[2]) - curr_outside[1] - m_Eng->GetCurr(0,maxX,maxY,pos[2]) + curr_outside[0]));
+        for (pos[1]=1; pos[1]<m_numLines[1]; ++pos[1]){
+            curr_im_outside[0] = cos_kx*volt_im[0][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetVolt(0,maxX,pos[1],pos[2]);
+            curr_im_outside[1] = cos_kx*volt_im[1][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetVolt(1,maxX,pos[1],pos[2]);
+            curr_im_outside[2] = cos_kx*volt_im[2][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetVolt(2,maxX,pos[1],pos[2]);
+            curr_outside[0] = cos_kx*m_Eng->GetVolt(0,maxX,pos[1],pos[2]) - sin_kx*volt_im[0][maxX][pos[1]][pos[2]];
+            curr_outside[1] = cos_kx*m_Eng->GetVolt(1,maxX,pos[1],pos[2]) - sin_kx*volt_im[1][maxX][pos[1]][pos[2]];
+            curr_outside[2] = cos_kx*m_Eng->GetVolt(2,maxX,pos[1],pos[2]) - sin_kx*volt_im[2][maxX][pos[1]][pos[2]];
+            //do the updates here
+            //for x
+            volt_im[0][maxX][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(0,maxX,pos[1],pos[2]);
+            volt_im[0][maxX][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,maxX,pos[1],pos[2]) * (curr_im[2][maxX][pos[1]][pos[2]] - curr_im_outside[2] - curr_im[1][maxX][pos[1]][pos[2]] + curr_im_outside[1]);
+            m_Eng->SetVolt(0,maxX,pos[1],pos[2], m_Eng->GetVolt(0,maxX,pos[1],pos[2]) +m_Op_Pbc->GetVI(0,maxX,pos[1],pos[2]) * (
+                        m_Eng->GetCurr(2,maxX,pos[1],pos[2]) - curr_outside[2] - m_Eng->GetCurr(1,maxX,pos[1],pos[2]) + curr_outside[1]));
+            //for y
+            volt_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(1,pos[0],pos[1],pos[2]);
+            volt_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im_outside[0] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im_outside[2]);
+            m_Eng->SetVolt(1,maxX,pos[1],pos[2], m_Eng->GetVolt(1,maxX,pos[1],pos[2]) +m_Op_Pbc->GetVI(1,maxX,pos[1],pos[2]) * (
+                        m_Eng->GetCurr(0,maxX,pos[1],pos[2]) - curr_outside[0] - m_Eng->GetCurr(2,maxX,pos[1],pos[2]) + curr_outside[2]));
+            //for z
+            volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(2,pos[0],pos[1],pos[2]);
+            volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im_outside[1] - curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im_outside[0]);
+            m_Eng->SetVolt(2,maxX,pos[1],pos[2], m_Eng->GetVolt(2,maxX,pos[1],pos[2]) +m_Op_Pbc->GetVI(2,maxX,pos[1],pos[2]) * (
+                        m_Eng->GetCurr(1,maxX,pos[1],pos[2]) - curr_outside[1] - m_Eng->GetCurr(0,maxX,pos[1],pos[2]) + curr_outside[0]));
+        }
 
-    for (pos[0]=0; pos[0]<m_numLines[0]; ++pos[0])
+        }
+
+    //
+    for (pos[0]=1; pos[0]<m_numLines[0]; ++pos[0])
     {
         shift[0]=pos[0];
-        for (pos[1]=0; pos[1]<m_numLines[1]; ++pos[1])
+        for (pos[1]=1; pos[1]<m_numLines[1]; ++pos[1])
         {
-            shift[1]=pos[1]; // 1 for all but the zeroth gird line
+            shift[1]=pos[1]; // 1 for all but the zeroth gird line, since shift is of type "bool"
             for (pos[2]=0; pos[2]<m_numLines[2]; ++pos[2])
             {
                 shift[2]=pos[2]; // 1 for all but the zeroth gird line
@@ -74,11 +133,61 @@ void Engine_Ext_Pbc::Apply2Voltages(){
         }
         ++pos[0];
     }
+
 }
 
 
 void Engine_Ext_Pbc::Apply2Current(){
+    // to update the currents at the lower X and Y boundary we need current values outside the domain
+    // Those are available from currents at the opposite side
+    pos[0] = maxX;
+    for (pos[2]=0; pos[2]<m_numLines[2]-1; ++pos[2]){
+        pos[1] = maxY;
+        volt_im_outside[0] = cos_kxy*volt_im[0][0][0][pos[2]] - sin_kxy*m_Eng->GetVolt(0,0,0,pos[2]);
+        volt_im_outside[1] = cos_kxy*volt_im[1][0][0][pos[2]] - sin_kxy*m_Eng->GetVolt(1,0,0,pos[2]);
+        volt_im_outside[2] = cos_kxy*volt_im[2][0][0][pos[2]] - sin_kxy*m_Eng->GetVolt(2,0,0,pos[2]);
+        volt_outside[0] = cos_kxy*m_Eng->GetVolt(0,0,0,pos[2]) + sin_kxy*volt_im[0][0][0][pos[2]];
+        volt_outside[1] = cos_kxy*m_Eng->GetVolt(1,0,0,pos[2]) + sin_kxy*volt_im[1][0][0][pos[2]];
+        volt_outside[2] = cos_kxy*m_Eng->GetVolt(2,0,0,pos[2]) + sin_kxy*volt_im[2][0][0][pos[2]];
+        curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
+        curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im_outside[2] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im_outside[1]);
+        m_Eng->SetCurr(0,pos[0],pos[1],pos[2], m_Eng->GetVolt(0,0,0,pos[2]) +m_Op_Pbc->GetII(0,0,0,pos[2]) * (
+                    m_Eng->GetVolt(2,pos[0],pos[1],pos[2]) - volt_outside[2] - m_Eng->GetVolt(1,pos[0],pos[1],pos[2]) + volt_outside[1]));
+        //for y
+        curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
+        curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im_outside[0] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im_outside[2]);
+        m_Eng->SetCurr(1,pos[0],pos[1],pos[2], m_Eng->GetVolt(1,0,0,pos[2]) +m_Op_Pbc->GetIV(1,0,0,pos[2]) * (
+                    m_Eng->GetVolt(0,pos[0],pos[1],pos[2]) - volt_outside[0] - m_Eng->GetVolt(2,pos[0],pos[1],pos[2]) + volt_outside[2]));
+        //for z
+        curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
+        curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im_outside[1] - curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im_outside[0]);
+        m_Eng->SetCurr(2,pos[0],pos[1],pos[2], m_Eng->GetVolt(2,0,0,pos[2]) +m_Op_Pbc->GetIV(2,0,0,pos[2]) * (
+                    m_Eng->GetVolt(1,pos[0],pos[1],pos[2]) - volt_outside[1] - m_Eng->GetVolt(0,pos[0],pos[1],pos[2]) + volt_outside[0]));
+        for (pos[1]=0; pos[1]<m_numLines[1]-1; ++pos[1]){
+            volt_im_outside[0] = cos_kx*volt_im[0][0][pos[1]][pos[2]] + sin_kx*m_Eng->GetVolt(0,0,pos[1],pos[2]);
+            volt_im_outside[1] = cos_kx*volt_im[1][0][pos[1]][pos[2]] + sin_kx*m_Eng->GetVolt(1,0,pos[1],pos[2]);
+            volt_im_outside[2] = cos_kx*volt_im[2][0][pos[1]][pos[2]] + sin_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]);
+            volt_outside[0] = cos_kx*m_Eng->GetVolt(0,0,pos[1],pos[2]) - sin_kx*volt_im[0][0][pos[1]][pos[2]];
+            volt_outside[1] = cos_kx*m_Eng->GetVolt(1,0,pos[1],pos[2]) - sin_kx*volt_im[1][0][pos[1]][pos[2]];
+            volt_outside[2] = cos_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]) - sin_kx*volt_im[2][0][pos[1]][pos[2]];
+            //do the updates here
+            //for x
+            curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
 
+            curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][0][pos[1]][pos[2]] - volt_im_outside[2] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im_outside[1]);
+            m_Eng->SetCurr(0,pos[0],pos[1],pos[2], m_Eng->GetCurr(0,pos[0],pos[1],pos[2]) +m_Op_Pbc->GetIV(0,0,pos[1],pos[2]) * (
+                        m_Eng->GetVolt(2,pos[0],pos[1],pos[2]) - volt_outside[2] - m_Eng->GetVolt(1,pos[0],pos[1],pos[2]) + volt_outside[1]));
+            //for y
+            curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
+            curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im_outside[0] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im_outside[2]);
+            m_Eng->SetCurr(1,pos[0],pos[1],pos[2], m_Eng->GetCurr(1,pos[0],pos[1],pos[2]) +m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (
+                        m_Eng->GetVolt(0,pos[0],pos[1],pos[2]) - volt_outside[0] - m_Eng->GetVolt(2,pos[0],pos[1],pos[2]) + volt_outside[2]));
+            //for z
+            curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
+            curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im_outside[1] - volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im_outside[0]);
+            m_Eng->SetCurr(2,pos[0],pos[1],pos[2], m_Eng->GetCurr(2,pos[0],pos[1],pos[2]) +m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (
+                        m_Eng->GetVolt(1,pos[0],pos[1],pos[2]) - volt_outside[1] - m_Eng->GetVolt(0,pos[0],pos[1],pos[2]) + volt_outside[0]));
+        }}
 
     for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0])
     {
@@ -106,98 +215,14 @@ void Engine_Ext_Pbc::Apply2Current(){
         ++pos[0];
     }
 };
-void Engine_Ext_Pbc::Apply_VoltPhases_to_dir(unsigned int dir){
-    m_ny   = dir;
-    m_nyP  = (dir+1)%3;
-    m_nyPP = (dir+2)%3;
 
 
-    unsigned int posL[3];
-    unsigned int posR[3];
-    unsigned int dir_lines[2] = {0, m_numLines[dir]-1};
-    FDTD_FLOAT tmp_Uim[3];
-    FDTD_FLOAT tmp_Ure[3];
-    FDTD_FLOAT sinus = sin(k_pbc[dir]);
-    FDTD_FLOAT cosinus = cos(k_pbc[dir]);
-    posL[m_ny] = dir_lines[0];
-    posR[m_ny] = dir_lines[1];
-    for (posL[m_nyP]=0; posL[m_nyP]<m_numLines[m_nyP]; ++posL[m_nyP]){
-        for (posL[m_nyPP]=0; posL[m_nyPP]<m_numLines[m_nyPP]; ++posL[m_nyPP]){
-            posR[m_nyP]  = posL[m_nyP];
-            posR[m_nyPP] = posL[m_nyPP];
-
-            tmp_Uim[0] = volt_im[0][posL[0]][posL[1]][posL[2]];
-            tmp_Uim[1] = volt_im[1][posL[0]][posL[1]][posL[2]];
-            tmp_Uim[2] = volt_im[2][posL[0]][posL[1]][posL[2]];
-            tmp_Ure[0] = m_Eng->GetVolt(0, posL);
-            tmp_Ure[1] = m_Eng->GetVolt(1, posL);
-            tmp_Ure[2] = m_Eng->GetVolt(2, posL);
-
-            // apply phases to imaginary parts of the voltage on the left pbc border
-            volt_im[0][posL[0]][posL[1]][posL[2]] = cosinus*volt_im[0][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(0, posR);
-            volt_im[1][posL[0]][posL[1]][posL[2]] = cosinus*volt_im[1][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(1, posR);
-            volt_im[2][posL[0]][posL[1]][posL[2]] = cosinus*volt_im[2][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetVolt(2, posR);
-            // apply phases to real parts of the voltage on the left pbc border
-            m_Eng->SetVolt(0, posL, cosinus*m_Eng->GetVolt(0,posR) - sinus*volt_im[0][posR[0]][posR[1]][posR[2]]);
-            m_Eng->SetVolt(1, posL, cosinus*m_Eng->GetVolt(1,posR) - sinus*volt_im[1][posR[0]][posR[1]][posR[2]]);
-            m_Eng->SetVolt(2, posL, cosinus*m_Eng->GetVolt(2,posR) - sinus*volt_im[2][posR[0]][posR[1]][posR[2]]);
-    }
-    }
-};
-
-
-void Engine_Ext_Pbc::Apply_CurrPhases_to_dir(unsigned int dir){
-
-
-    m_ny   = dir;
-    m_nyP  = (dir+1)%3;
-    m_nyPP = (dir+2)%3;
-    unsigned int posL[3];
-    unsigned int posR[3];
-    unsigned int dir_lines[2] = {0, m_numLines[dir]-1};
-    FDTD_FLOAT tmp_Iim[3];
-    FDTD_FLOAT tmp_Ire[3];
-    FDTD_FLOAT sinus = sin(k_pbc[dir]);
-    FDTD_FLOAT cosinus = cos(k_pbc[dir]);
-    posL[m_ny] = dir_lines[0];
-    posR[m_ny] = dir_lines[1];
-    for (posL[m_nyP]=0; posL[m_nyP]<m_numLines[m_nyP]; ++posL[m_nyP]){
-        for (posL[m_nyPP]=0; posL[m_nyPP]<m_numLines[m_nyPP]; ++posL[m_nyPP]){
-            posR[m_nyP]  = posL[m_nyP];
-            posR[m_nyPP] = posL[m_nyPP];
-
-            tmp_Iim[0] = curr_im[0][posL[0]][posL[1]][posL[2]];
-            tmp_Iim[1] = curr_im[1][posL[0]][posL[1]][posL[2]];
-            tmp_Iim[2] = curr_im[2][posL[0]][posL[1]][posL[2]];
-            tmp_Ire[0] = m_Eng->GetCurr(0, posL);
-            tmp_Ire[1] = m_Eng->GetCurr(1, posL);
-            tmp_Ire[2] = m_Eng->GetCurr(2, posL);
-            // apply phases to imaginary parts of the current on the left pbc border
-            curr_im[0][posL[0]][posL[1]][posL[2]] = cosinus*curr_im[0][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(0, posR);
-            curr_im[1][posL[0]][posL[1]][posL[2]] = cosinus*curr_im[1][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(1, posR);
-            curr_im[2][posL[0]][posL[1]][posL[2]] = cosinus*curr_im[2][posR[0]][posR[1]][posR[2]] + sinus*m_Eng->GetCurr(2, posR);
-            // apply phases to real parts of the current on the left pbc border
-            m_Eng->SetCurr(0, posL, cosinus*m_Eng->GetCurr(0,posR) - sinus*curr_im[0][posR[0]][posR[1]][posR[2]]);
-            m_Eng->SetCurr(1, posL, cosinus*m_Eng->GetCurr(1,posR) - sinus*curr_im[1][posR[0]][posR[1]][posR[2]]);
-            m_Eng->SetCurr(2, posL, cosinus*m_Eng->GetCurr(2,posR) - sinus*curr_im[2][posR[0]][posR[1]][posR[2]]);
-        }
-    }
-};
 
 
 void Engine_Ext_Pbc::DoPreVoltageUpdates(int threadID)
 {
 };
-void Engine_Ext_Pbc::DoPostUpdates()
-{
 
-    for(int i=0; i<3; ++i){
-        if(m_Op_Pbc->pbc_dirs[2*i]){
-            Apply_CurrPhases_to_dir(i);
-            Apply_VoltPhases_to_dir(i);
-        }
-    }
-}
 
 void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
     //soft current excitation here (E-field excite)
@@ -207,31 +232,27 @@ void Engine_Ext_Pbc::DoPostCurrentUpdates(int threadID){
     int numTS = m_Eng->GetNumberOfTimesteps();
     unsigned int length = m_Op_Pbc->m_Exc->GetLength();
     FDTD_FLOAT* exc_curr_sin =  m_Op_Pbc->m_Exc->GetCurrentSignal_s();
-    FDTD_FLOAT* exc_curr_cos =  m_Op_Pbc->m_Exc->GetCurrentSignal();
-
+    FDTD_FLOAT* exc_curr_cos =  m_Op_Pbc->m_Exc->GetCurrentSignal(); // the signals time-dependence
     int p = numTS+1;
     if (m_Op_Pbc->m_Exc->GetSignalPeriod()>0)
         p = int(m_Op_Pbc->m_Exc->GetSignalPeriod()/m_Op_Pbc->m_Exc->GetTimestep());
-//    cout << "engine_ext_pbc.cpp: Before Current excitation loop" << endl;
-//    cout << "Volt_Count = " << m_Op_Pbc->Volt_Count << endl;
     //switch for different engine types to access faster inline engine functions
     switch (m_Eng->GetType())
     {
     case Engine::BASIC:
         {
-            for (unsigned int n=0; n<m_Op_Pbc->Volt_Count; ++n)
+            for (unsigned int n=0; n<m_Op_Pbc->Curr_Count; ++n)
             {
-                exc_pos = numTS - (int)m_Op_Pbc->Volt_delay[n];
+                exc_pos = numTS - (int)m_Op_Pbc->Curr_delay[n];
                 exc_pos *= (exc_pos>0);
                 exc_pos %= p;
                 exc_pos *= (exc_pos<(int)length);
-                ny = m_Op_Pbc->Volt_dir[n];
+                ny = m_Op_Pbc->Curr_dir[n];
                 pos[0]=m_Op_Pbc->Curr_index[0][n];
                 pos[1]=m_Op_Pbc->Curr_index[1][n];
                 pos[2]=m_Op_Pbc->Curr_index[2][n];
-                m_Eng->Engine::SetCurr(ny,pos, m_Eng->Engine::GetCurr(ny,pos) + m_Op_Pbc->Curr_amp_sin[n]*exc_curr_sin[exc_pos]
-                                                                              + m_Op_Pbc->Curr_amp_cos[n]*exc_curr_cos[exc_pos]);
-                cout << "engine_ext_pbc doing real current excitation " << m_Op_Pbc->Curr_amp_cos[n]*exc_curr_cos[exc_pos] << endl;
+                m_Eng->Engine::SetCurr(ny,pos, m_Eng->Engine::GetCurr(ny,pos)  + m_Op_Pbc->Curr_amp_sin[n]*exc_curr_sin[exc_pos]
+                                                                               + m_Op_Pbc->Curr_amp_cos[n]*exc_curr_cos[exc_pos]);
             }
             break;
         }

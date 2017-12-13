@@ -29,13 +29,13 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
    Init();
 
-   //apply_PBC_to_operator(pbc_dirs);
+   apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Init();
 
-    //apply_PBC_to_operator(pbc_dirs);
+    apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
@@ -43,7 +43,6 @@ Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
 void Operator_Ext_Pbc::Init()
 {
-    cout << "operator_ext_pbc.cpp: Called Init()" << endl;
     m_Exc = m_Op->GetExcitationSignal();
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
@@ -313,7 +312,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                                 amp_sin = elec->GetWeightedExcitation(n,curr_coord,1)*m_Op->GetEdgeLength(n,pos,true);// delta[n]*gridDelta;
                                 amp_cos = elec->GetWeightedExcitation(n,curr_coord,0)*m_Op->GetEdgeLength(n,pos,true);// delta[n]*gridDelta;
 
-                                if (amp_cos!=0 && amp_sin!=0)
+                                if (amp_cos!=0 || amp_sin!=0)
                                 {
                                     curr_vExcit_sin.push_back(amp_sin);
                                     curr_vExcit_cos.push_back(amp_cos);

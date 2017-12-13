@@ -44,15 +44,13 @@ public:
 
     virtual void DoPostCurrentUpdates() {Engine_Ext_Pbc::DoPostCurrentUpdates(0);};
     virtual void DoPostCurrentUpdates(int threadID);
-    void DoPostUpdates();
+
 
     void Apply2Voltages();
 
     void Apply2Current();
 
 
-    void Apply_VoltPhases_to_dir(unsigned int dir);
-    void Apply_CurrPhases_to_dir(unsigned int dir);
 
 
 
@@ -76,6 +74,17 @@ protected:
 
     FDTD_FLOAT**** volt_im; // imaginary part of the complex voltage
     FDTD_FLOAT**** curr_im; // imaginary part of the complex current
+    FDTD_FLOAT sin_kx;
+    FDTD_FLOAT sin_ky;
+    FDTD_FLOAT sin_kxy;
+    FDTD_FLOAT cos_kx;
+    FDTD_FLOAT cos_ky;
+    FDTD_FLOAT cos_kxy;
+    FDTD_FLOAT curr_im_outside[3] = {0};
+    FDTD_FLOAT curr_outside[3] = {0};
+    FDTD_FLOAT volt_im_outside[3] = {0};
+    FDTD_FLOAT volt_outside[3] = {0};
+    unsigned int maxX, maxY;
 };
 
 #endif // ENGINE_EXT_PBC_H
