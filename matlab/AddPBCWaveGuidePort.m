@@ -103,15 +103,15 @@ if (exc_amp~=0)
     port.excitepos = e_start(dir);
     e_vec = [1 1 1]*exc_amp;
     e_vec(dir) = 0;
-    exc_name = [PortNamePrefix 'port_excite_' num2str(portnr)];
+    exc_nameE = [PortNamePrefix 'port_exciteE_' num2str(portnr)];
+    exc_nameH = [PortNamePrefix 'port_exciteH_' num2str(portnr)];
     if (exc_type~0 || exc_type~2)
         error 'The excitation type for PBC excitation must be either 0 (softE) or 2 (softH)'
     end
-    CSX = AddPBCExcitation( CSX, exc_name, exc_type, e_vec, varargin{:});
-    if (exc_type == 0);
-        CSX = SetPBCExcitationWeight(CSX, exc_name, E_WG_funcsin, E_WG_funccos);
-    if (exc_type == 2);
-        CSX = SetPBCExcitationWeight(CSX, exc_name, H_WG_funcsin, H_WG_funccos);
+    CSX = AddPBCExcitation( CSX, exc_nameE, 0, e_vec, varargin{:});
+    CSX = AddPBCExcitation( CSX, exc_nameH, 2, e_vec, varargin{:});
+    CSX = SetPBCExcitationWeight(CSX, exc_nameE, E_WG_funcsin, E_WG_funccos);
+    CSX = SetPBCExcitationWeight(CSX, exc_nameH, H_WG_funcsin, H_WG_funccos);
     end
 	CSX = AddBox( CSX, exc_name, prio, e_start, e_stop);
 end
