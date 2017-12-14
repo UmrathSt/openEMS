@@ -1,5 +1,5 @@
-function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_funcsin,E_WG_funccos, H_WG_funcsin,H_WG_funccos, kc, exc_amp, varargin )
-% function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
+function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_funcsin,E_WG_funccos, H_WG_funcsin,H_WG_funccos, kc, exc_amp, exc_type, varargin )
+% function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, exc_type, varargin )
 % 
 % Create a PBC waveguide port, including an optional excitation and probes
 % 
@@ -18,6 +18,7 @@ function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, 
 %   H_WG_funccos:  magnetic field mode profile function as a string for cos(t)
 %   kc:         cutoff wavenumber (defined by the waveguide dimensions)
 %   exc_amp:    excitation amplitude (set 0 to be passive)
+%   exc_type    type of the excitation 0: -> E-soft-excite, 2-> H-soft-excite
 %
 % optional (key/values):
 %   varargin:   optional additional excitations options, see also AddExcitation
@@ -103,8 +104,15 @@ if (exc_amp~=0)
     e_vec = [1 1 1]*exc_amp;
     e_vec(dir) = 0;
     exc_name = [PortNamePrefix 'port_excite_' num2str(portnr)];
-    CSX = AddPBCExcitation( CSX, exc_name, 0, e_vec, varargin{:});
-    CSX = SetPBCExcitationWeight(CSX, exc_name, E_WG_funcsin, E_WG_funccos, H_WG_funcsin, H_WG_funccos);
+    if (exc_type~0 || exc_type~2)
+        error 'The excitation type for PBC excitation must be either 0 (softE) or 2 (softH)'
+    end
+    CSX = AddPBCExcitation( CSX, exc_name, exc_type, e_vec, varargin{:});
+    if (exc_type == 0);
+        CSX = SetPBCExcitationWeight(CSX, exc_name, E_WG_funcsin, E_WG_funccos);
+    if (exc_type == 2);
+        CSX = SetPBCExcitationWeight(CSX, exc_name, H_WG_funcsin, H_WG_funccos);
+    end
 	CSX = AddBox( CSX, exc_name, prio, e_start, e_stop);
 end
 
