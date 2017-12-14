@@ -115,45 +115,30 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
         m_nyPP = (dirs[i]+2)%3;
         FDTD_FLOAT pp_val = 1;
         FDTD_FLOAT pq_val = 0;
-
+        // set the operator to zero/one such that the updates at the boundary
+        // can be treated separately
         for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]-1; ++pos[m_nyP])
         {
-
             for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]-1; ++pos[m_nyPP])
             {
-                if(dirs[2*i]){ // lowest mesh-line in direction i = (0,1,2) = ("x","y","z")
+                if(dirs[2*i]){ // The voltages have missing current neighbours at the lower boundary
                     pos[m_ny] = 0;
-                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],pp_val);
+                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2],   pp_val);
+                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],  pp_val);
                     m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    // set the driving terms to zero such that the fields on the PBs don't get updated
-                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2],pq_val);
+                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2],   pq_val);
+                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2],  pq_val);
                     m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2], pq_val);
+                }
+                 if(dirs[2*i+1]){ // The currents have missing voltage neighbours at the higher boundaries
+                    pos[m_ny] = m_numLines[dirs[i]]-1; // and are therefore updated separately
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2],   pp_val);
+                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2],  pp_val);
+                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
+                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2],   pq_val);
+                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2],  pq_val);
                     m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], pq_val);
                 }
-                 if(dirs[2*i+1]){ // highest mesh-line in direction i = (0,1,2) = ("x","y","z")
-                    pos[m_ny] = m_numLines[dirs[i]]-1;
-                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    // set the driving terms to zero such that the fields on the PBs don't get updated
-                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2], pq_val);
-                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], pq_val);
-                }
-
             }
         }
     }
