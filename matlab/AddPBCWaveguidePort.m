@@ -66,7 +66,7 @@ port.kc = kc;
 port.dir = dir;
 port.drawingunit = CSX.RectilinearGrid.ATTRIBUTE.DeltaUnit;
 
-PortNamePrefix = 'PBC_cosine';
+PortNamePrefix = 'PBC_cosineT';
 
 varargin_tmp  = varargin;
 for n=1:2:numel(varargin_tmp)
