@@ -1,9 +1,7 @@
-function [CSX,port] = AddPBCWaveGuidePort(CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
-% function [CSX,port] = AddPBCWaveGuidePort(CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
+function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
+% function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
 % 
-% Create a PBC waveguide port for constant transverse wavenumber
-% waves (CTW) in geometries beeing periodic in the x- and y- directions
-% including an optional excitation and probes
+% Create a PBC waveguide port, including an optional excitation and probes
 % 
 % Note: - The excitation will be located at the start position in the given direction
 %       - The voltage and current probes at the stop position in the given direction
@@ -60,13 +58,13 @@ end
 
 dir = DirChar2Int(dir);
 
-port.type='WaveGuide';
+port.type='PBCWaveGuide';
 port.nr=portnr;
 port.kc = kc;
 port.dir = dir;
 port.drawingunit = CSX.RectilinearGrid.ATTRIBUTE.DeltaUnit;
 
-PortNamePrefix = 'PBC_cosineT';
+PortNamePrefix = 'PBC';
 
 varargin_tmp  = varargin;
 for n=1:2:numel(varargin_tmp)
@@ -85,8 +83,10 @@ end
 
 port.direction = dir_sign;
 
-E_WG_func{dir} = 0;
-H_WG_func{dir} = 0;
+E_WG_funccos{dir} = 0;
+H_WG_funccos{dir} = 0;
+E_WG_funcsin{dir} = 0;
+H_WG_funcsin{dir} = 0;
 
 port.excite = 0;
 if (exc_amp~=0)
@@ -101,8 +101,8 @@ if (exc_amp~=0)
     e_vec = [1 1 1]*exc_amp;
     e_vec(dir) = 0;
     exc_name = [PortNamePrefix 'port_excite_' num2str(portnr)];
-    CSX = AddExcitation( CSX, exc_name, 0, e_vec, varargin{:});
-    CSX = SetExcitationWeight(CSX, exc_name, E_WG_func );
+    CSX = AddPBCExcitation( CSX, exc_name, 0, e_vec, varargin{:});
+    CSX = SetPBCExcitationWeight(CSX, exc_name, E_WG_funcsin, E_WG_funccos );
 	CSX = AddBox( CSX, exc_name, prio, e_start, e_stop);
 end
 
@@ -113,9 +113,9 @@ m_start(dir) = stop(dir);
 
 port.measplanepos = m_start(dir);
 port.U_filename = [PortNamePrefix 'port_ut' int2str(portnr)];
-CSX = AddProbe(CSX, port.U_filename, 10, 'ModeFunction', E_WG_func);
+CSX = AddProbe(CSX, port.U_filename, 10, 'ModeFunction', E_WG_funcsin);
 CSX = AddBox(CSX, port.U_filename, 0 ,m_start, m_stop);
 
 port.I_filename = [PortNamePrefix 'port_it' int2str(portnr)];
-CSX = AddProbe(CSX, port.I_filename, 11, 'ModeFunction', H_WG_func, 'weight', dir_sign);
+CSX = AddProbe(CSX, port.I_filename, 11, 'ModeFunction', H_WG_funcsin, 'weight', dir_sign);
 CSX = AddBox(CSX, port.I_filename, 0 ,m_start, m_stop);
