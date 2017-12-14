@@ -1,4 +1,4 @@
-function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
+function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_funcsin,E_WG_funccos, H_WG_funcsin,H_WG_funccos, kc, exc_amp, varargin )
 % function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, varargin )
 % 
 % Create a PBC waveguide port, including an optional excitation and probes
@@ -12,8 +12,10 @@ function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, 
 %   start:      start coordinates of waveguide port box
 %   stop:       stop  coordinates of waveguide port box
 %   dir:        direction of port (0/1/2 or 'x'/'y'/'z'-direction)
-%   E_WG_func:  electric field mode profile function as a string
-%   H_WG_func:  magnetic field mode profile function as a string
+%   E_WG_funcsin:  electric field mode profile function as a string for sin(t)
+%   E_WG_funccos:  electric field mode profile function as a string for cos(t)
+%   H_WG_funcsin:  magnetic field mode profile function as a string for sin(t)
+%   H_WG_funccos:  magnetic field mode profile function as a string for cos(t)
 %   kc:         cutoff wavenumber (defined by the waveguide dimensions)
 %   exc_amp:    excitation amplitude (set 0 to be passive)
 %
@@ -102,7 +104,7 @@ if (exc_amp~=0)
     e_vec(dir) = 0;
     exc_name = [PortNamePrefix 'port_excite_' num2str(portnr)];
     CSX = AddPBCExcitation( CSX, exc_name, 0, e_vec, varargin{:});
-    CSX = SetPBCExcitationWeight(CSX, exc_name, E_WG_funcsin, E_WG_funccos );
+    CSX = SetPBCExcitationWeight(CSX, exc_name, E_WG_funcsin, E_WG_funccos, H_WG_funcsin, H_WG_funccos);
 	CSX = AddBox( CSX, exc_name, prio, e_start, e_stop);
 end
 
