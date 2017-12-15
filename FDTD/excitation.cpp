@@ -116,7 +116,6 @@ bool Excitation::buildExcitationSignal(unsigned int maxTS)
 		CalcGaussianPulsExcitation(m_f0,m_fc,maxTS);
 		break;
     case Excitation::PBCGaussianPulse:
-        cout << "excitation.cpp: PBCGaussianPulse calculation" << endl;
         CalcPBCGaussianPulsExcitation(m_f0,m_fc,maxTS);
         break;
 	case Excitation::Sinusoidal:

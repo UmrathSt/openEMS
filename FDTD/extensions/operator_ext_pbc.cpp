@@ -116,13 +116,14 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
         FDTD_FLOAT pp_val = 1;
         FDTD_FLOAT pq_val = 0;
         // set the operator to zero/one such that the updates at the boundary
-        // can be treated separately
-        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]-1; ++pos[m_nyP])
+        // can be treated separately in engine_ext_pbc.cpp
+        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP])
         {
-            for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]-1; ++pos[m_nyPP])
+            for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]; ++pos[m_nyPP])
             {
                 if(dirs[2*i]){ // The voltages have missing current neighbours at the lower boundary
                     pos[m_ny] = 0;
+
                     m_Op->SetVV(m_ny, pos[0], pos[1], pos[2],   pp_val);
                     m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],  pp_val);
                     m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], pp_val);
@@ -132,6 +133,7 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
                 }
                  if(dirs[2*i+1]){ // The currents have missing voltage neighbours at the higher boundaries
                     pos[m_ny] = m_numLines[dirs[i]]-1; // and are therefore updated separately
+
                     m_Op->SetII(m_ny, pos[0], pos[1], pos[2],   pp_val);
                     m_Op->SetII(m_nyP, pos[0], pos[1], pos[2],  pp_val);
                     m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
@@ -297,6 +299,8 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                                 amp_sin = elec->GetWeightedExcitation(n,curr_coord,1)*m_Op->GetEdgeLength(n,pos,true);// delta[n]*gridDelta;
                                 amp_cos = elec->GetWeightedExcitation(n,curr_coord,0)*m_Op->GetEdgeLength(n,pos,true);// delta[n]*gridDelta;
 
+
+
                                 if (amp_cos!=0 || amp_sin!=0)
                                 {
                                     curr_vExcit_sin.push_back(amp_sin);
@@ -321,64 +325,8 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
         }
     }
 
-    //special treatment for primitives of type curve (treated as wires) see also Calc_PEC
-    double p1[3];
-    double p2[3];
-    Grid_Path path;
-    for (size_t p=0; p<vec_prop.size(); ++p)
-    {
-        prop = vec_prop.at(p);
-        elec = prop->ToPBCExcitation();
 
-        for (size_t n=0; n<prop->GetQtyPrimitives(); ++n)
-        {
-            CSPrimitives* prim = prop->GetPrimitive(n);
-            CSPrimCurve* curv = prim->ToCurve();
-            if (curv)
-            {
-                for (size_t i=1; i<curv->GetNumberOfPoints(); ++i)
-                {
-                    curv->GetPoint(i-1,p1,m_Op->m_MeshType);
-                    curv->GetPoint(i,p2,m_Op->m_MeshType);
-                    path = m_Op->FindPath(p1,p2);
-                    if (path.dir.size()>0)
-                        prim->SetPrimitiveUsed(true);
-                    for (size_t t=0; t<path.dir.size(); ++t)
-                    {
-                        n = path.dir.at(t);
-                        pos[0] = path.posPath[0].at(t);
-                        pos[1] = path.posPath[1].at(t);
-                        pos[2] = path.posPath[2].at(t);
-                        m_Op->GetYeeCoords(n,pos,volt_coord,false);
-                        if (elec!=NULL)
-                        {
-                            if ((elec->GetActiveDir(n)) && (pos[n]<numLines[n]-1) && ( (elec->GetExcitType()==0) || (elec->GetExcitType()==1) ))
-                            {
-                                amp_sin = elec->GetWeightedExcitation(n,volt_coord,1)*m_Op->GetEdgeLength(n,pos);
-                                amp_cos = elec->GetWeightedExcitation(n,volt_coord,0)*m_Op->GetEdgeLength(n,pos);
 
-                                if (amp_sin!=0 && amp_cos!=0)
-                                {
-                                    volt_vExcit_sin.push_back(amp_sin);
-                                    volt_vExcit_cos.push_back(amp_cos);
-                                    volt_vDelay.push_back((unsigned int)(elec->GetDelay()/dT));
-                                    volt_vDir.push_back(n);
-                                    volt_vIndex[0].push_back(pos[0]);
-                                    volt_vIndex[1].push_back(pos[1]);
-                                    volt_vIndex[2].push_back(pos[2]);
-                                }
-                                if (elec->GetExcitType()==1) //hard excite
-                                {
-                                    m_Op->SetVV(n,pos[0],pos[1],pos[2], 0 );
-                                    m_Op->SetVI(n,pos[0],pos[1],pos[2], 0 );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     // set voltage excitations
     setupVoltageExcitation( volt_vIndex, volt_vExcit_sin, volt_vExcit_cos, volt_vDelay, volt_vDir );
