@@ -1,5 +1,5 @@
-function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_funcsin,E_WG_funccos, H_WG_funcsin,H_WG_funccos, kc, exc_amp, exc_type, varargin )
-% function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, kc, exc_amp, exc_type, varargin )
+function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_funcsin,E_WG_funccos, H_WG_funcsin,H_WG_funccos, exc_amp, exc_type, varargin )
+% function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, E_WG_func, H_WG_func, exc_amp, exc_type, varargin )
 % 
 % Create a PBC waveguide port, including an optional excitation and probes
 % 
@@ -16,7 +16,6 @@ function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, 
 %   E_WG_funccos:  electric field mode profile function as a string for cos(t)
 %   H_WG_funcsin:  magnetic field mode profile function as a string for sin(t)
 %   H_WG_funccos:  magnetic field mode profile function as a string for cos(t)
-%   kc:         cutoff wavenumber (defined by the waveguide dimensions)
 %   exc_amp:    excitation amplitude (set 0 to be passive)
 %   exc_type    type of the excitation 0: -> E-soft-excite, 2-> H-soft-excite
 %
@@ -31,22 +30,10 @@ function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, 
 % example:
 %   % create a TE11 circular waveguide mode, using cylindircal coordinates
 %   p11 = 1.841;
-%   kc = p11 / radius;  % cutoff wavenumber with radius in meter
-%   kc_draw = kc*unit;  % cutoff wavenumber in drawing units
-%
-%   % electric field mode profile
-%   func_E{1} = [ num2str(-1/kc_draw^2,15) '/rho*cos(a)*j1('  num2str(kc_draw,15) '*rho)'];
-%   func_E{2} = [ num2str(1/kc_draw,15) '*sin(a)*0.5*(j0('  num2str(kc_draw,15) '*rho)-jn(2,'  num2str(kc_draw,15) '*rho))'];
-%   func_E{3} = 0;
-%
-%   % magnetic field mode profile
-%   func_H{1} = [ '-1*' num2str(1/kc_draw,15) '*sin(a)*0.5*(j0('  num2str(kc_draw,15) '*rho)-jn(2,'  num2str(kc_draw,15) '*rho))'];
-%   func_H{2} = [ num2str(-1/kc_draw^2,15) '/rho*cos(a)*j1('  num2str(kc_draw,15) '*rho)'];
-%   func_H{3} = 0;
 %
 %   start=[mesh.r(1)   mesh.a(1)   0  ];
 %   stop =[mesh.r(end) mesh.a(end) 100];
-%   [CSX, port{1}] = AddWaveGuidePort(CSX, 0, 1, start, stop, 2, func_E, func_H, kc, 1);
+%   [CSX, port{1}] = AddPBCWaveGuidePort(CSX, 0, 1, start, stop, 2, func_E, func_H, 1);
 %
 % openEMS matlab interface
 % -----------------------
@@ -55,15 +42,14 @@ function [CSX,port] = AddPBCWaveGuidePort( CSX, prio, portnr, start, stop, dir, 
 % See also InitCSX, AddExcitation, calcWGPort, calcPort
 
 %check mesh
-if ~isfield(CSX,'RectilinearGrid')
-    error 'mesh needs to be defined! Use DefineRectGrid() first!';
+if ~isfield(CSX, 'RectilinearGrid')
+    error('mesh needs to be defined! Use DefineRectGrid() first!');
 end
 
 dir = DirChar2Int(dir);
 
 port.type='PBCWaveGuide';
 port.nr=portnr;
-port.kc = kc;
 port.dir = dir;
 port.drawingunit = CSX.RectilinearGrid.ATTRIBUTE.DeltaUnit;
 
@@ -86,10 +72,6 @@ end
 
 port.direction = dir_sign;
 
-E_WG_funccos{dir} = 0;
-H_WG_funccos{dir} = 0;
-E_WG_funcsin{dir} = 0;
-H_WG_funcsin{dir} = 0;
 
 port.excite = 0;
 if (exc_amp~=0)
@@ -98,22 +80,23 @@ if (exc_amp~=0)
     end
     e_start = start;
     e_stop = stop;
-    e_stop(dir) = e_start(dir);
     port.excite = 1;
     port.excitepos = e_start(dir);
     e_vec = [1 1 1]*exc_amp;
     e_vec(dir) = 0;
-    exc_nameE = [PortNamePrefix 'port_exciteE_' num2str(portnr)];
-    exc_nameH = [PortNamePrefix 'port_exciteH_' num2str(portnr)];
-    if (exc_type~0 || exc_type~2)
-        error 'The excitation type for PBC excitation must be either 0 (softE) or 2 (softH)'
+    exc_nameE = [PortNamePrefix '_port_exciteE_' num2str(portnr)];
+    exc_nameH = [PortNamePrefix '_port_exciteH_' num2str(portnr)];
+    if ~(exc_type==0 || exc_type==2)
+        error('The excitation type for PBC excitation must be either 0 (softE) or 2 (softH) but got: %i', exc_type);
     end
+    fprintf('I am now adding current an voltage excitations for the PBC');
     CSX = AddPBCExcitation( CSX, exc_nameE, 0, e_vec, varargin{:});
     CSX = AddPBCExcitation( CSX, exc_nameH, 2, e_vec, varargin{:});
     CSX = SetPBCExcitationWeight(CSX, exc_nameE, E_WG_funcsin, E_WG_funccos);
     CSX = SetPBCExcitationWeight(CSX, exc_nameH, H_WG_funcsin, H_WG_funccos);
-    end
-	CSX = AddBox( CSX, exc_name, prio, e_start, e_stop);
+    
+	CSX = AddBox( CSX, exc_nameE, prio, e_start, e_stop);
+    CSX = AddBox( CSX, exc_nameH, prio, e_start, e_stop);
 end
 
 % voltage/current planes
@@ -129,3 +112,4 @@ CSX = AddBox(CSX, port.U_filename, 0 ,m_start, m_stop);
 port.I_filename = [PortNamePrefix 'port_it' int2str(portnr)];
 CSX = AddProbe(CSX, port.I_filename, 11, 'ModeFunction', H_WG_funcsin, 'weight', dir_sign);
 CSX = AddBox(CSX, port.I_filename, 0 ,m_start, m_stop);
+end
