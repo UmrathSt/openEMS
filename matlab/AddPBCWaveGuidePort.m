@@ -89,7 +89,7 @@ if (exc_amp~=0)
     if ~(exc_type==0 || exc_type==2)
         error('The excitation type for PBC excitation must be either 0 (softE) or 2 (softH) but got: %i', exc_type);
     end
-    fprintf('I am now adding current an voltage excitations for the PBC');
+    fprintf('I am now adding current and voltage excitations to excite a CTW wave.');
     CSX = AddPBCExcitation( CSX, exc_nameE, 0, e_vec, varargin{:});
     CSX = AddPBCExcitation( CSX, exc_nameH, 2, e_vec, varargin{:});
     CSX = SetPBCExcitationWeight(CSX, exc_nameE, E_WG_funcsin, E_WG_funccos);
@@ -99,7 +99,9 @@ if (exc_amp~=0)
     CSX = AddBox( CSX, exc_nameH, prio, e_start, e_stop);
 end
 
-% voltage/current planes
+% voltage/current planes 
+% This section definitely has to be modified in order to allow for 
+% S-Parameter evaluation!!! TODO 
 m_start = start;
 m_stop = stop;
 m_start(dir) = stop(dir);
