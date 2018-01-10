@@ -3,6 +3,7 @@
 
 #include "operator_extension.h"
 #include "FDTD/operator.h"
+#include "tools/array_ops.h"
 
 class Operator_Ext_Pbc : public Operator_Extension
 {
@@ -15,6 +16,10 @@ public:
     inline virtual FDTD_FLOAT GetVI(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->GetVI(n,x,y,z); };
     inline virtual FDTD_FLOAT GetIV(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->GetIV(n,x,y,z); };
     inline virtual FDTD_FLOAT GetII(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->GetII(n,x,y,z); };
+    inline virtual FDTD_FLOAT GetVVedge(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const {return VV[n][x][y][z]; };
+    inline virtual FDTD_FLOAT GetVIedge(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const {return VI[n][x][y][z]; };
+    inline virtual FDTD_FLOAT GetIVedge(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const {return IV[n][x][y][z]; };
+    inline virtual FDTD_FLOAT GetIIedge(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const {return II[n][x][y][z]; };
     inline virtual void SetVV(unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT val) const { return m_Op->SetVV(n,x,y,z,val); };
     inline virtual void SetVI(unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT val) const { return m_Op->SetVI(n,x,y,z,val); };
     inline virtual void SetIV(unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT val) const { return m_Op->SetIV(n,x,y,z,val); };
@@ -30,6 +35,7 @@ public:
     void apply_PBC_to_operator(bool *dirs);
     void Set_k_pbc(FDTD_FLOAT *k_pbc);
     void Set_pbc_dirs(bool *dirs);
+    void copy_operator_vals();
 
     virtual bool BuildExtension();
     virtual Engine_Extension* CreateEngineExtention();
@@ -70,6 +76,12 @@ protected:
     FDTD_FLOAT* Curr_amp_cos; //represented as edge-currents!!
     FDTD_FLOAT* Curr_amp_sin; //represented as edge-currents!!
     unsigned int* Curr_delay;
+
+    // desc
+    FDTD_FLOAT**** VV;
+    FDTD_FLOAT**** II;
+    FDTD_FLOAT**** VI;
+    FDTD_FLOAT**** IV;
 
 };
 

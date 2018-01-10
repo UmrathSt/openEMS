@@ -27,18 +27,25 @@
 
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
-   Init();
-
-   apply_PBC_to_operator(pbc_dirs);
+    Init();
+    copy_operator_vals();
+    apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Init();
-
+    copy_operator_vals();
     apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
+void Operator_Ext_Pbc::copy_operator_vals()
+{
+    VV = m_Op->vv;
+    VI = m_Op->vi;
+    IV = m_Op->iv;
+    II = m_Op->ii;
+};
 
 
 void Operator_Ext_Pbc::Init()
@@ -47,7 +54,11 @@ void Operator_Ext_Pbc::Init()
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
     m_numLines[2]= m_Op->GetNumberOfLines(2);
-    apply_PBC_to_operator(pbc_dirs);
+    VV = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
+    VI = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
+    IV = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
+    II = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
+    std::cout << "I initialized the Operator_Ext_Pbc and created VV of (" << 3 << "," << m_numLines[0] << "," << m_numLines[1] << "," << m_numLines[2] << ")" << std::endl;
     Operator_Extension::Init();
     Volt_delay = 0;
     Volt_amp_sin = 0; // time dependence
