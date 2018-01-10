@@ -39,6 +39,10 @@ public:
     virtual void DoPreVoltageUpdates() {Engine_Ext_Pbc::DoPreVoltageUpdates(0);}
     virtual void DoPreVoltageUpdates(int threadID);
 
+    virtual void DoPreCurrentUpdates() {Engine_Ext_Pbc::DoPreCurrentUpdates(0);}
+    virtual void DoPreCurrentUpdates(int threadID);
+
+
     virtual void DoPostVoltageUpdates() {Engine_Ext_Pbc::DoPostVoltageUpdates(0);}
     virtual void DoPostVoltageUpdates(int threadID);
 

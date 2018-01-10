@@ -66,9 +66,7 @@ public:
 	virtual void DoPostVoltageUpdates();
 	//! Apply extension voltage changes
 	virtual void Apply2Voltages();
-    //! Apply Phases to real and imaginary parts of voltage and current
-    //! after having updated them (once)
-    virtual void DoPostUpdates();
+
 
 
 	//! Execute Pre-Current extension updates
