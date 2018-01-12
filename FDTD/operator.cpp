@@ -1035,10 +1035,19 @@ int Operator::CalcECOperator( DebugFlags debugFlags )
 
 	//Apply PEC to all boundary's
 	bool PEC[6]={1,1,1,1,1,1};
+    //Make an exception for periodic boundaries
+
+
+
 	//make an exception for BC == -1
-	for (int n=0; n<6; ++n)
-		if ((m_BC[n]==-1))
+    for (int n=0; n<6; ++n){
+        if ((m_BC[n]==-1))
 			PEC[n] = false;
+        if ((m_BC[n]==4)){
+            PEC[n] = false;
+            std::cout << "Didn't set operator on PBC surfaces to PEC" << std::endl;
+        }
+    }
 	ApplyElectricBC(PEC);
 
 	CalcPEC();

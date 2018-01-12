@@ -49,7 +49,10 @@ public:
     virtual void DoPostCurrentUpdates() {Engine_Ext_Pbc::DoPostCurrentUpdates(0);};
     virtual void DoPostCurrentUpdates(int threadID);
 
-
+    void DoImagVoltPhaseUpdates();
+    void DoRealVoltPhaseUpdates();
+    void DoImagCurrPhaseUpdates();
+    void DoRealCurrPhaseUpdates();
     void Apply2Voltages();
 
     void Apply2Current();

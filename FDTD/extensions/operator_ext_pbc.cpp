@@ -29,12 +29,14 @@ Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
     Init();
     copy_operator_vals();
+    std::cout << "###\noperator_ext_pbc.cpp 1st: VV[0][0][0][10] = " << this->GetVVedge(0,0,0,10) << std::endl;
     apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Init();
     copy_operator_vals();
+    std::cout << "###\n \noperator_ext_pbc.cpp 2nd: VV[0][0][0][10] = " << VV[0][0][0][10] << "\n" <<std::endl;
     apply_PBC_to_operator(pbc_dirs);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
@@ -127,7 +129,7 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
         FDTD_FLOAT pp_val = 1;
         FDTD_FLOAT pq_val = 0;
         // set the operator to zero/one such that the updates at the boundary
-        // can be treated separately in engine_ext_pbc.cpp
+        // are not done by the engine, but can be treated separately in engine_ext_pbc.cpp
         for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP])
         {
             for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]; ++pos[m_nyPP])
