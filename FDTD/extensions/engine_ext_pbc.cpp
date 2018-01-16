@@ -57,27 +57,26 @@ void Engine_Ext_Pbc::SetNumberOfThreads(int nrThread)
 
 void Engine_Ext_Pbc::Apply2Voltages(){
 
+    bool shift;
     for (pos[0]=1; pos[0]<m_numLines[0]; ++pos[0])
     {
-        shift[0]=pos[0];
         for (pos[1]=1; pos[1]<m_numLines[1]; ++pos[1])
         {
-            shift[1]=pos[1]; // 1 for all but the zeroth gird line, since shift is of type "bool"
             for (pos[2]=0; pos[2]<m_numLines[2]; ++pos[2])
             {
-                shift[2]=pos[2]; // 1 for all but the zeroth gird line
+                shift=pos[2]; // 1 for all but the zeroth gird line
                 //do the updates here
                 //for x
                 volt_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(0,pos[0],pos[1],pos[2]);
-                volt_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im[2][pos[0]][pos[1]-shift[1]][pos[2]] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]-shift[2]]);
+                volt_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im[2][pos[0]][pos[1]-1][pos[2]] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]-shift]);
 
                 //for y
                 volt_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(1,pos[0],pos[1],pos[2]);
-                volt_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]-shift[2]] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im[2][pos[0]-shift[0]][pos[1]][pos[2]]);
+                volt_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]-shift] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im[2][pos[0]-1][pos[1]][pos[2]]);
 
                 //for z
                 volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(2,pos[0],pos[1],pos[2]);
-                volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im[1][pos[0]-shift[0]][pos[1]][pos[2]]- curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im[0][pos[0]][pos[1]-shift[1]][pos[2]]);
+                volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im[1][pos[0]-1][pos[1]][pos[2]]- curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im[0][pos[0]][pos[1]-1][pos[2]]);
             }
         }
     }
@@ -87,16 +86,12 @@ void Engine_Ext_Pbc::Apply2Voltages(){
 
 void Engine_Ext_Pbc::Apply2Current()
 {
-    for (pos[0]=1; pos[0]<m_numLines[0]-1; ++pos[0])
+    for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0])
     {
-        shift[0]=pos[0];
-        for (pos[1]=1; pos[1]<m_numLines[1]-1; ++pos[1])
+        for (pos[1]=0; pos[1]<m_numLines[1]-1; ++pos[1])
         {
-
-            shift[1] = pos[1];
             for (pos[2]=0; pos[2]<m_numLines[2]-1; ++pos[2])
             {
-                shift[2] = pos[2];
                 //do the updates here
                 //for x
                 curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
@@ -122,65 +117,178 @@ void Engine_Ext_Pbc::DoImagCurrPhaseUpdates(){
         // moved the case x = pos[maxX] = maxX outside the loop
         // now treat the YZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = maxX
         for (pos[1]=0; pos[1]<m_numLines[1]-1; ++pos[1]){
-            volt_im_outside[0] = cos_kx*volt_im[0][0][pos[1]][pos[2]] - sin_kx*m_Eng->GetVolt(0,0,pos[1],pos[2]);
             volt_im_outside[1] = cos_kx*volt_im[1][0][pos[1]][pos[2]] - sin_kx*m_Eng->GetVolt(1,0,pos[1],pos[2]);
             volt_im_outside[2] = cos_kx*volt_im[2][0][pos[1]][pos[2]] - sin_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]);
-            volt_outside[0] = cos_kx*m_Eng->GetVolt(0,0,pos[1],pos[2]) + sin_kx*volt_im[0][0][pos[1]][pos[2]];
-            volt_outside[1] = cos_kx*m_Eng->GetVolt(1,0,pos[1],pos[2]) + sin_kx*volt_im[1][0][pos[1]][pos[2]];
-            volt_outside[2] = cos_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]) + sin_kx*volt_im[2][0][pos[1]][pos[2]];
-
-            curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
-            curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im[2][pos[0]][pos[1]-1][pos[2]] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]-shift]);
+            // z and y components are outside the computational domain
+            curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
+            curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im[2][pos[0]][pos[1]+1][pos[2]] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]+1]);
 
             //for y
-            curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
-            curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]-shift] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im_outside[2]);
-
+            curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
+            curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im_outside[2]);
             //for z
-            curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
-            curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im_outside[1]- curr_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]-1][pos[2]]);
+            curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(2,pos[0],pos[1],pos[2]);
+            curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im_outside[1]- volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]+1][pos[2]]);
 
     }
         pos[1] = maxY;
         // moved the case y = pos[1] = maxY outside the loop
         // now treat the XZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = 0
         for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0]){
-            volt_im_outside[0] = cos_ky*volt_im[0][pos[0]][0][pos[2]] + sin_ky*m_Eng->GetVolt(0,pos[0],0,pos[2]);
-            volt_im_outside[1] = cos_ky*volt_im[1][pos[0]][0][pos[2]] + sin_ky*m_Eng->GetVolt(1,pos[0],0,pos[2]);
-            volt_im_outside[2] = cos_ky*volt_im[2][pos[0]][0][pos[2]] + sin_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]);
-            volt_outside[0] = cos_ky*m_Eng->GetVolt(0,pos[0],0,pos[2]) - sin_ky*volt_im[0][pos[0]][0][pos[2]];
-            volt_outside[1] = cos_ky*m_Eng->GetVolt(1,pos[0],0,pos[2]) - sin_ky*volt_im[1][pos[0]][0][pos[2]];
-            volt_outside[2] = cos_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]) - sin_ky*volt_im[2][pos[0]][0][pos[2]];
-
-            curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
-            curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im_outside[2] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]-shift]);
+            volt_im_outside[0] = cos_ky*volt_im[0][pos[0]][0][pos[2]] - sin_ky*m_Eng->GetVolt(0,pos[0],0,pos[2]);
+            volt_im_outside[2] = cos_ky*volt_im[2][pos[0]][0][pos[2]] - sin_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]);
+            // z and x component are outside the computational domain
+            curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
+            curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im[2][pos[0]][pos[1]+1][pos[2]] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]+1]);
 
             //for y
-            curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
-            curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]-shift] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]-1][pos[1]][pos[2]]);
-
+            curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
+            curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]+1][pos[1]][pos[2]]);
             //for z
-            curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
-            curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im[1][pos[0]-1][pos[1]][pos[2]]- volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im_outside[0]);
+            curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(2,pos[0],pos[1],pos[2]);
+            curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im[1][pos[0]+1][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im[0][pos[0]][pos[1]+1][pos[2]]);
         }
-        pos[1] = 0;
-        pos[0] = 0;
-        curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(0,pos[0],pos[1],pos[2]);
-        curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im_outside[2] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]-shift]);
+        pos[1] = maxX;
+        pos[0] = maxY;
+        volt_im_outside[2] = cos_ky*volt_im[2][pos[0]][0][pos[2]] - sin_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]);
+        curr_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
+        curr_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2]) * (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im_outside[2] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]+1]);
+        volt_im_outside[2] = cos_kx*volt_im[2][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetVolt(2,maxX,pos[1],pos[2]);
 
         //for y
-        curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(1,pos[0],pos[1],pos[2]);
-        curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]-shift] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im_outside[2]);
-
+        curr_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
+        curr_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2]) * (volt_im[0][pos[0]][pos[1]][pos[2]] - volt_im[0][pos[0]][pos[1]][pos[2]+1] - volt_im[2][pos[0]][pos[1]][pos[2]] + volt_im[2][pos[0]+1][pos[1]][pos[2]]);
         //for z
-        curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetII(2,pos[0],pos[1],pos[2]);
-        curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIV(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im_outside[1]- volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im_outside[0]);
+        volt_im_outside[0] = cos_ky*volt_im[2][pos[0]][0][pos[2]] - sin_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]);
+        volt_im_outside[1] = cos_kx*volt_im[2][0][pos[1]][pos[2]] - sin_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]);
+
+        curr_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(2,pos[0],pos[1],pos[2]);
+        curr_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(2,pos[0],pos[1],pos[2]) * (volt_im[1][pos[0]][pos[1]][pos[2]] - volt_im_outside[1] - volt_im[0][pos[0]][pos[1]][pos[2]] + volt_im_outside[0]);
     }
 
 };
 
-void Engine_Ext_Pbc::DoRealCurrPhaseUpdates(){};
-void Engine_Ext_Pbc::DoRealVoltPhaseUpdates(){};
+void Engine_Ext_Pbc::DoRealCurrPhaseUpdates(){
+    bool shift;
+
+    for (pos[2]=0; pos[2]<m_numLines[2]-1; ++pos[2])
+    {
+        pos[0]=maxX;
+        // moved the case x = pos[maxX] = maxX outside the loop
+        // now treat the YZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = maxX
+        for (pos[1]=0; pos[1]<m_numLines[1]-1; ++pos[1]){
+            volt_outside[1] = cos_kx*m_Eng->GetVolt(1,0,pos[1],pos[2]) - sin_kx*volt_im[1][0][pos[1]][pos[2]];
+            volt_outside[2] = cos_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]) - sin_kx*volt_im[2][0][pos[1]][pos[2]];
+
+            m_Eng->curr[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
+            m_Eng->curr[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2])* ( m_Eng->volt[2][pos[0]][pos[1]][pos[2]] - m_Eng->volt[2][pos[0]][pos[1]+1][pos[2]] - m_Eng->volt[1][pos[0]][pos[1]][pos[2]] + m_Eng->volt[1][pos[0]][pos[1]][pos[2]+1]);
+
+            //for y
+            m_Eng->curr[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
+            m_Eng->curr[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2])* ( m_Eng->volt[0][pos[0]][pos[1]][pos[2]] - m_Eng->volt[0][pos[0]][pos[1]][pos[2]+1] - m_Eng->volt[2][pos[0]][pos[1]][pos[2]] + volt_outside[2]);
+
+            //for z
+            m_Eng->curr[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(2,pos[0],pos[1],pos[2]);
+            m_Eng->curr[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(2,pos[0],pos[1],pos[2])* ( m_Eng->volt[1][pos[0]][pos[1]][pos[2]] - volt_outside[1]- m_Eng->volt[0][pos[0]][pos[1]][pos[2]] + m_Eng->volt[0][pos[0]][pos[1]+1][pos[2]]);
+
+    }
+        pos[1] = maxY;
+        // moved the case y = pos[1] = maxY outside the loop
+        // now treat the XZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = 0
+        for (pos[0]=0; pos[0]<m_numLines[0]-1; ++pos[0]){
+
+            volt_outside[0] = cos_ky*m_Eng->GetVolt(0,pos[0],0,pos[2]) - sin_ky*volt_im[0][pos[0]][0][pos[2]];
+            volt_outside[2] = cos_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]) - sin_ky*volt_im[2][pos[0]][0][pos[2]];
+
+            m_Eng->curr[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
+            m_Eng->curr[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2])* ( m_Eng->volt[2][pos[0]][pos[1]][pos[2]] - volt_outside[2]- m_Eng->volt[1][pos[0]][pos[1]][pos[2]] + m_Eng->volt[1][pos[0]][pos[1]][pos[2]+1]);
+
+            //for y
+            m_Eng->curr[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
+            m_Eng->curr[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2])* ( m_Eng->volt[0][pos[0]][pos[1]][pos[2]] - m_Eng->volt[0][pos[0]][pos[1]][pos[2]+1] - m_Eng->volt[2][pos[0]][pos[1]][pos[2]] + m_Eng->volt[2][pos[0]+1][pos[1]][pos[2]]);
+
+            //for z
+            m_Eng->curr[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(2,pos[0],pos[1],pos[2]);
+            m_Eng->curr[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(2,pos[0],pos[1],pos[2])* ( m_Eng->volt[1][pos[0]][pos[1]][pos[2]] - m_Eng->volt[1][pos[0]+1][pos[1]][pos[2]] - m_Eng->volt[0][pos[0]][pos[1]][pos[2]] + volt_outside[0]);
+        }
+        pos[1] = maxY;
+        pos[0] = maxX;
+        volt_outside[2] = cos_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]) - sin_ky*volt_im[2][pos[0]][0][pos[2]];
+        m_Eng->curr[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
+        m_Eng->curr[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2])* ( m_Eng->volt[2][pos[0]][pos[1]][pos[2]] - volt_outside[2]- m_Eng->volt[1][pos[0]][pos[1]][pos[2]] + m_Eng->volt[1][pos[0]][pos[1]][pos[2]+1]);
+        volt_outside[2] = cos_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]) - sin_kx*volt_im[2][0][pos[1]][pos[2]];
+        //for y
+        m_Eng->curr[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
+        m_Eng->curr[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2])* ( m_Eng->volt[0][pos[0]][pos[1]][pos[2]] - m_Eng->volt[0][pos[0]][pos[1]][pos[2]+1] - m_Eng->volt[2][pos[0]][pos[1]][pos[2]] + volt_outside[2]);
+        volt_outside[0] = cos_ky*m_Eng->GetVolt(0,pos[0],0,pos[2]) - sin_ky*volt_im[0][pos[0]][0][pos[2]];
+        volt_outside[1] = cos_kx*m_Eng->GetVolt(1,0,pos[1],pos[2]) - sin_kx*volt_im[1][0][pos[1]][pos[2]];
+        //for z
+        m_Eng->curr[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(2,pos[0],pos[1],pos[2]);
+        m_Eng->curr[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(2,pos[0],pos[1],pos[2])* ( m_Eng->volt[1][pos[0]][pos[1]][pos[2]] - volt_outside[1] - m_Eng->volt[0][pos[0]][pos[1]][pos[2]] + volt_outside[0]);
+    }
+
+};
+
+
+void Engine_Ext_Pbc::DoRealVoltPhaseUpdates(){
+    bool shift;
+
+    for (pos[2]=0; pos[2]<m_numLines[2]; ++pos[2])
+    {
+        pos[0]=0;
+        shift = pos[2];
+        // moved the case x = pos[0] = 0 outside the loop
+        // now treat the YZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = maxX
+        for (pos[1]=1; pos[1]<m_numLines[1]; ++pos[1]){
+            curr_outside[1] = cos_kx*m_Eng->curr[1][maxX][pos[1]][pos[2]] + sin_kx*curr_im[1][maxX][pos[1]][pos[2]];
+            curr_outside[2] = cos_kx*m_Eng->curr[2][maxX][pos[1]][pos[2]] + sin_kx*curr_im[2][maxX][pos[1]][pos[2]];
+
+            m_Eng->volt[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(0,pos[0],pos[1],pos[2]);
+            m_Eng->volt[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(0,pos[0],pos[1],pos[2])* ( m_Eng->curr[2][pos[0]][pos[1]][pos[2]] - m_Eng->curr[2][pos[0]][pos[1]-1][pos[2]] - m_Eng->curr[1][pos[0]][pos[1]][pos[2]] + m_Eng->curr[1][pos[0]][pos[1]][pos[2]-shift]);
+
+            //for y
+            m_Eng->volt[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(1,pos[0],pos[1],pos[2]);
+            m_Eng->volt[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(1,pos[0],pos[1],pos[2])* ( m_Eng->curr[0][pos[0]][pos[1]][pos[2]] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]-shift] - m_Eng->curr[2][pos[0]][pos[1]][pos[2]] + curr_outside[2]);
+
+            //for z
+            m_Eng->volt[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(2,pos[0],pos[1],pos[2]);
+            m_Eng->volt[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(2,pos[0],pos[1],pos[2])* ( m_Eng->curr[1][pos[0]][pos[1]][pos[2]] - curr_outside[1] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]] + m_Eng->curr[0][pos[0]][pos[1]-1][pos[2]]);
+
+    }
+        pos[1] = 0;
+        // moved the case y = pos[1] = 0 outside the loop
+        // now treat the XZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = maxX
+        for (pos[0]=1; pos[0]<m_numLines[0]; ++pos[0]){
+            curr_im_outside[0] = cos_ky*curr_im[0][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(0,pos[0],maxY,pos[2]);
+            curr_im_outside[2] = cos_ky*curr_im[2][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
+
+            m_Eng->volt[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(0,pos[0],pos[1],pos[2]);
+            m_Eng->volt[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(0,pos[0],pos[1],pos[2])* ( m_Eng->curr[2][pos[0]][pos[1]][pos[2]] - curr_outside[2] - m_Eng->curr[1][pos[0]][pos[1]][pos[2]] + m_Eng->curr[1][pos[0]][pos[1]][pos[2]-shift]);
+
+            //for y
+            m_Eng->volt[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(1,pos[0],pos[1],pos[2]);
+            m_Eng->volt[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(1,pos[0],pos[1],pos[2])* ( m_Eng->curr[0][pos[0]][pos[1]][pos[2]] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]-shift] - m_Eng->curr[2][pos[0]][pos[1]][pos[2]] + m_Eng->curr[2][pos[0]-1][pos[1]][pos[2]]);
+
+            //for z
+            m_Eng->volt[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(2,pos[0],pos[1],pos[2]);
+            m_Eng->volt[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(2,pos[0],pos[1],pos[2])* ( m_Eng->curr[1][pos[0]][pos[1]][pos[2]] - m_Eng->curr[1][pos[0]-1][pos[1]][pos[2]] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]] + curr_outside[0]);
+        }
+        pos[1] = 0;
+        pos[0] = 0;
+        curr_im_outside[2] = cos_ky*curr_im[2][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
+        m_Eng->volt[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(0,pos[0],pos[1],pos[2]);
+        m_Eng->volt[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(0,pos[0],pos[1],pos[2])* ( m_Eng->curr[2][pos[0]][pos[1]][pos[2]] - curr_outside[2] - m_Eng->curr[1][pos[0]][pos[1]][pos[2]] + m_Eng->curr[1][pos[0]][pos[1]][pos[2]-shift]);
+        curr_im_outside[2] = cos_kx*curr_im[2][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
+        //for y
+        m_Eng->volt[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(1,pos[0],pos[1],pos[2]);
+        m_Eng->volt[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(1,pos[0],pos[1],pos[2])* ( m_Eng->curr[0][pos[0]][pos[1]][pos[2]] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]-shift] - m_Eng->curr[2][pos[0]][pos[1]][pos[2]] + curr_outside[2]);
+        curr_im_outside[0] = cos_ky*curr_im[0][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(0,pos[0],maxY,pos[2]);
+        curr_im_outside[1] = cos_kx*curr_im[1][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(1,maxX,pos[1],pos[2]);
+        //for z
+        m_Eng->volt[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(2,pos[0],pos[1],pos[2]);
+        m_Eng->volt[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(2,pos[0],pos[1],pos[2])* ( m_Eng->curr[1][pos[0]][pos[1]][pos[2]] - curr_outside[1] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]] + curr_outside[0]);
+    }
+};
 
 
 void Engine_Ext_Pbc::DoImagVoltPhaseUpdates()
@@ -194,12 +302,10 @@ void Engine_Ext_Pbc::DoImagVoltPhaseUpdates()
         // moved the case x = pos[0] = 0 outside the loop
         // now treat the YZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = maxX
         for (pos[1]=1; pos[1]<m_numLines[1]; ++pos[1]){
-            curr_im_outside[0] = cos_kx*curr_im[0][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(0,maxX,pos[1],pos[2]);
-            curr_im_outside[1] = cos_kx*curr_im[1][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(1,maxX,pos[1],pos[2]);
-            curr_im_outside[2] = cos_kx*curr_im[2][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
-            curr_outside[0] = cos_kx*m_Eng->GetCurr(0,maxX,pos[1],pos[2]) - sin_kx*curr_im[0][maxX][pos[1]][pos[2]];
-            curr_outside[1] = cos_kx*m_Eng->GetCurr(1,maxX,pos[1],pos[2]) - sin_kx*curr_im[1][maxX][pos[1]][pos[2]];
-            curr_outside[2] = cos_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]) - sin_kx*curr_im[2][maxX][pos[1]][pos[2]];
+            curr_im_outside[0] = cos_kx*curr_im[0][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(0,maxX,pos[1],pos[2]);
+            curr_im_outside[1] = cos_kx*curr_im[1][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(1,maxX,pos[1],pos[2]);
+            curr_im_outside[2] = cos_kx*curr_im[2][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
+
 
             volt_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(0,pos[0],pos[1],pos[2]);
             volt_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im[2][pos[0]][pos[1]-1][pos[2]] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]-shift]);
@@ -217,12 +323,10 @@ void Engine_Ext_Pbc::DoImagVoltPhaseUpdates()
         // moved the case y = pos[1] = 0 outside the loop
         // now treat the XZ-plane at the minimum x-coordinate and get the missing currents from pos[0] = maxX
         for (pos[0]=1; pos[0]<m_numLines[0]; ++pos[0]){
-            curr_im_outside[0] = cos_ky*curr_im[0][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(0,pos[0],maxY,pos[2]);
-            curr_im_outside[1] = cos_ky*curr_im[1][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(1,pos[0],maxY,pos[2]);
-            curr_im_outside[2] = cos_ky*curr_im[2][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
-            curr_outside[0] = cos_ky*m_Eng->GetCurr(0,pos[0],maxY,pos[2]) - sin_ky*curr_im[0][pos[0]][maxY][pos[2]];
-            curr_outside[1] = cos_ky*m_Eng->GetCurr(1,pos[0],maxY,pos[2]) - sin_ky*curr_im[1][pos[0]][maxY][pos[2]];
-            curr_outside[2] = cos_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]) - sin_ky*curr_im[2][pos[0]][maxY][pos[2]];
+            curr_im_outside[0] = cos_ky*curr_im[0][pos[0]][maxY][pos[2]] - sin_ky*m_Eng->GetCurr(0,pos[0],maxY,pos[2]);
+            curr_im_outside[1] = cos_ky*curr_im[1][pos[0]][maxY][pos[2]] - sin_ky*m_Eng->GetCurr(1,pos[0],maxY,pos[2]);
+            curr_im_outside[2] = cos_ky*curr_im[2][pos[0]][maxY][pos[2]] - sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
+
 
             volt_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(0,pos[0],pos[1],pos[2]);
             volt_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im_outside[2] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]-shift]);
@@ -237,19 +341,24 @@ void Engine_Ext_Pbc::DoImagVoltPhaseUpdates()
         }
         pos[1] = 0;
         pos[0] = 0;
+
+        curr_im_outside[2] = cos_ky*curr_im[2][pos[0]][maxY][pos[2]] - sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
         volt_im[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(0,pos[0],pos[1],pos[2]);
         volt_im[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(0,pos[0],pos[1],pos[2]) * (curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im_outside[2] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]-shift]);
 
         //for y
+        curr_im_outside[2] = cos_kx*curr_im[2][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
         volt_im[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(1,pos[0],pos[1],pos[2]);
         volt_im[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(1,pos[0],pos[1],pos[2]) * (curr_im[0][pos[0]][pos[1]][pos[2]] - curr_im[0][pos[0]][pos[1]][pos[2]-shift] - curr_im[2][pos[0]][pos[1]][pos[2]] + curr_im_outside[2]);
 
         //for z
+        curr_im_outside[1] = cos_kx*curr_im[1][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(1,maxX,pos[1],pos[2]);
+        curr_im_outside[0] = cos_ky*curr_im[0][pos[0]][maxY][pos[2]] - sin_ky*m_Eng->GetCurr(0,pos[0],maxY,pos[2]);
         volt_im[2][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVV(2,pos[0],pos[1],pos[2]);
         volt_im[2][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVI(2,pos[0],pos[1],pos[2]) * (curr_im[1][pos[0]][pos[1]][pos[2]] - curr_im_outside[1]- curr_im[0][pos[0]][pos[1]][pos[2]] + curr_im_outside[0]);
 
     }
-}
+};
 
 
 void Engine_Ext_Pbc::DoPreVoltageUpdates(int threadID)
