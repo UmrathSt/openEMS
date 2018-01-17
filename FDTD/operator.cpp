@@ -287,10 +287,10 @@ bool Operator::SnapToMesh(const double* dcoord, unsigned int* uicoord, bool dual
 }
 
 void Operator::Set_k_pbc(int idx, FDTD_FLOAT k) {
-    cout << "operator.cpp: Set_k_pbc was called to set k_pbc = " << k << endl;
-    cout << "dirispbc[0]" << dir_is_pbc[0] << endl;
+    cout << "operator.cpp: Set_k_pbc was called to set k_pbc["<< idx << "] =" << k << endl;
     k_pbc[idx] = k;
-    cout << "and I could make it" << endl;
+    dir_is_pbc[2*idx] = true;
+    dir_is_pbc[2*idx+1] = true;
 }
 int Operator::SnapBox2Mesh(const double* start, const double* stop, unsigned int* uiStart, unsigned int* uiStop, bool dualMesh, bool fullMesh, int SnapMethod, bool* bStartIn, bool* bStopIn) const
 {

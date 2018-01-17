@@ -25,19 +25,26 @@
 #include "CSPropPBCExcitation.h"
 #include "CSPropExcitation.h"
 
+#include "tinyxml.h" // for reading k_pbc out out the geometry.xml file
+
+
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
 {
     Init();
-    copy_operator_vals();
-    std::cout << "###\noperator_ext_pbc.cpp 1st: VV[0][0][0][10] = " << this->GetVVedge(0,0,0,10) << std::endl;
-    apply_PBC_to_operator(pbc_dirs);
+    std::cout << "#-#-#-#" << std::endl;
+    std::cout << "constructor" << std::endl;
+    std::cout << "#-#-#-#" << std::endl;
+
+    apply_PBC_to_operator(m_Op->dir_is_pbc);
+
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Init();
-    copy_operator_vals();
-    std::cout << "###\n \noperator_ext_pbc.cpp 2nd: VV[0][0][0][10] = " << VV[0][0][0][10] << "\n" <<std::endl;
-    apply_PBC_to_operator(pbc_dirs);
+    std::cout << "#-#-#-#" << std::endl;
+    std::cout << "copy constructor" << std::endl;
+    std::cout << "#-#-#-#" << std::endl;
+    apply_PBC_to_operator(m_Op->dir_is_pbc);
 }
 Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
 
@@ -47,11 +54,13 @@ void Operator_Ext_Pbc::copy_operator_vals()
     VI = m_Op->vi;
     IV = m_Op->iv;
     II = m_Op->ii;
+
 };
 
 
 void Operator_Ext_Pbc::Init()
 {
+    copy_operator_vals();
     m_Exc = m_Op->GetExcitationSignal();
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
@@ -119,7 +128,6 @@ void Operator_Ext_Pbc::Reset()
 }
 void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
 {
-
 
     for(int i=0; i<3; ++i)
     {
@@ -191,11 +199,6 @@ bool Operator_Ext_Pbc::BuildExtension()
 
     unsigned int m_numLines[3] = {m_Op->GetNumberOfLines(0,true),m_Op->GetNumberOfLines(1,true),m_Op->GetNumberOfLines(2,true)};
 
-    if (m_Op->k_pbc[0] == 0 && m_Op->k_pbc[1] == 0 && m_Op->k_pbc[2] == 0)
-    {
-        cerr << "Operator_Ext_Pbc::BuildExtension: Warning, Obviously the PBC-Extension was used without setting m_k_PBC, trying to proceed anyways ..." << endl;
-        return false;
-    }
     return true;
 }
 
@@ -209,7 +212,33 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
         return false;
 
     Reset();
+    string file = "geometry.xml";
+    TiXmlDocument doc(file);
+    if (!doc.LoadFile())
+    {
+        cerr << "openEMS: Error File-Loading failed!!! File: " << file << endl;
+        exit(-1);
+    }
     ContinuousStructure* CSX = m_Op->GetGeometryCSX();
+    TiXmlElement* openEMSxml = doc.FirstChildElement("openEMS");
+    TiXmlElement* FDTD_Opts = openEMSxml->FirstChildElement("FDTD");
+    TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundary");
+    double dhelp;
+    if(PBC == NULL)
+    {
+        std::cerr << "operator_ext_pbc.cpp: Error, can't read openEMS boundary cond Settings... " << std::endl;
+        exit(-3);
+    }
+    else{
+        string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
+        for(int i=0; i<3; ++i){
+           dhelp = 0;
+           if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
+                k_pbc[i] = (FDTD_FLOAT)(dhelp);
+                cout << "operator_ext_pbc.cpp: setting k_pbc["<<i<<"]="<<k_pbc[i]<<" worked.\n" << endl;
+                }
+        }
+    }
 
     unsigned int pos[3];
     double amp_cos=0;
@@ -355,9 +384,6 @@ void Operator_Ext_Pbc::setupVoltageExcitation( vector<unsigned int> const volt_v
         vector<FDTD_FLOAT> const& volt_vExcit_cos, vector<unsigned int> const& volt_vDelay, vector<unsigned int> const& volt_vDir )
 {
     Volt_Count = volt_vIndex[0].size();
-    cout << "---------------------" << endl;
-    cout << "Operator_ext_Pbc::setupVoltageExcitation: Volt_count = " << Volt_Count << endl;
-    cout << "---------------------" << endl;
     for (int n=0; n<3; n++)
     {
         Volt_Count_Dir[n]=0;

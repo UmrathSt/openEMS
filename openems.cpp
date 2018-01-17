@@ -313,6 +313,7 @@ bool openEMS::SetupBoundaryConditions()
         if (m_BC_type[n] == 4){
             direction_is_pbc[n] = true;
             pbc_used = true;
+            FDTD_Op->dir_is_pbc[n] = true;
         }
         // --------------------
     }
@@ -807,7 +808,6 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 dhelp = 0;
                 if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
                     k_pbc[i] = (FDTD_FLOAT)(dhelp);
-                    cout << "openEMS.cpp: setting k_PBC worked in openems.cpp to the value given in the xml worked " << endl;
                 }
                 else{
                     cerr << "ERROR: Direction " << i << " is set to PBC, but no value for k_pbc was specified, exiting..." << endl;
