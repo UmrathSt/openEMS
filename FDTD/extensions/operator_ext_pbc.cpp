@@ -83,18 +83,18 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
             {
                 if(dirs[2*i]){ // The voltages have missing current neighbours at the lower boundary
                     pos[m_ny] = 0;
+                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2],  pp_val);
                     m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],  pp_val);
                     m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2],  pq_val);
+                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2], pq_val);
                     m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2],  pq_val);
                     m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
                 }
                  if(dirs[2*i+1]){ // The currents have missing voltage neighbours at the higher boundaries
                     pos[m_ny] = m_numLines[m_ny]-1; // and are therefore updated separately
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
                     m_Op->SetII(m_nyP, pos[0], pos[1], pos[2],  pp_val);
                     m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
                     m_Op->SetIV(m_ny, pos[0], pos[1], pos[2],  pq_val);
                     m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2],  pq_val);
                     m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], pq_val);
@@ -110,9 +110,9 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
         std::cout << "apply_PBC_to_operator: vi[" << i << "][1,0,10]=" << m_Op->vi[i][1][0][10] << std::endl;
         std::cout << "apply_PBC_to_operator: vi[" << i << "][0,1,10]=" << m_Op->vi[i][0][1][10] << std::endl;
         std::cout << "apply_PBC_to_operator: vi[" << i << "][1,1,10]=" << m_Op->vi[i][1][1][10] << std::endl;
-
         std::cout << "--------------" << std::endl;
         std::cout << "#######" << std::endl;
+
     }
 }
 
