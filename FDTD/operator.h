@@ -50,7 +50,7 @@ public:
 	//! Create a new operator
 	static Operator* New();
 	virtual ~Operator();
-    bool dir_is_pbc[3] = {0};
+    bool dir_is_pbc[6] = {0};
 	virtual Engine* CreateEngine();
 	virtual Engine* GetEngine() const {return m_Engine;}
 
@@ -76,8 +76,8 @@ public:
 	inline virtual void SetII( unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT value ) { ii[n][x][y][z] = value; }
 	inline virtual void SetIV( unsigned int n, unsigned int x, unsigned int y, unsigned int z, FDTD_FLOAT value ) { iv[n][x][y][z] = value; }
 
-    void Set_k_pbc(int idx, FDTD_FLOAT k);
-    FDTD_FLOAT k_pbc[3] = {0};
+    void Set_pbc_phase(int idx, FDTD_FLOAT phase);
+    FDTD_FLOAT pbc_phase[3] = {0};
 
 	virtual void ApplyElectricBC(bool* dirs); //applied by default to all boundaries
 	virtual void ApplyMagneticBC(bool* dirs);

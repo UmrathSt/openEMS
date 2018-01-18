@@ -781,7 +781,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                 this->Set_BC_Type(n, 2);
             else if (s_bc=="PBC"){
                 this->Set_BC_Type(n, 4);
-                pbc_used = true;
+                pbc_used += true;
                 direction_is_pbc[n] = true;
             }
             else if (strncmp(s_bc.c_str(),"PML_=",4)==0)
@@ -794,14 +794,15 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
     }
 
     if (pbc_used){
+        cout << "openems.cpp: pbc_used==True" << endl;
     Check_pbc_validity();
-    TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundary");
+    TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundaryPhases");
     if(PBC == NULL){
         cerr << "ERROR: PBCs are set, but no PeriodicBoundary section has been found in the .xml configuration file, exiting..." << endl;
         exit(-3);
     }
     else{
-        string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
+        string k_pbc_names[] = {"pbc_phase_x", "pbc_phase_y", "pbc_phase_z"};
         for(int i=0; i<3; ++i){
             if (direction_is_pbc[2*i+1])
             {
@@ -810,7 +811,7 @@ bool openEMS::Parse_XML_FDTDSetup(TiXmlElement* FDTD_Opts)
                     k_pbc[i] = (FDTD_FLOAT)(dhelp);
                 }
                 else{
-                    cerr << "ERROR: Direction " << i << " is set to PBC, but no value for k_pbc was specified, exiting..." << endl;
+                    cerr << "openems.cpp: ERROR: Direction " << i << " is set to PBC, but no value for the phase delay in this direction was specified, exiting..." << endl;
                     exit(-3);
                     }
             }
@@ -1031,17 +1032,20 @@ int openEMS::SetupFDTD()
 		debugFlags |= Operator::debugPEC;
 
 
-    cout << "openems.cpp: Before CalcECOperator(debugFlags)" << endl;
 	FDTD_Op->CalcECOperator( debugFlags );
     // setup the pbc such that the FDTD_Eng will know about the PBCs
     if (pbc_used)
     {
-        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op);
-        op_ext_pbc->Set_k_pbc(k_pbc);
+
+        Operator_Ext_Pbc* op_ext_pbc = new Operator_Ext_Pbc(FDTD_Op, k_pbc, direction_is_pbc);
+
+
         op_ext_pbc->Set_pbc_dirs(direction_is_pbc);
+
         op_ext_pbc->Init();
+
         FDTD_Op->AddExtension(op_ext_pbc);
-        cout << "openems.cpp: Added Operator_Ext_Pbc extension to FDTD Operator" << endl;
+        cout << "openems.cpp: Added Operator_ext_Pbc extension to FDTD Operator" << endl;
     }
 
 	/*******************************************************************************/

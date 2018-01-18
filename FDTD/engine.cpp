@@ -62,7 +62,6 @@ void Engine::InitExtensions()
 	{
 		Operator_Extension* op_ext = Op->GetExtension(n);
 		Engine_Extension* eng_ext = op_ext->CreateEngineExtention();
-        cout << "engine.cpp: InitExtensions of name " << eng_ext->GetExtensionName() << endl;
 		if (eng_ext)
 		{
 			eng_ext->SetEngine(this);

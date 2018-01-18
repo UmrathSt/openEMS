@@ -49,10 +49,8 @@ public:
     virtual void DoPostCurrentUpdates() {Engine_Ext_Pbc::DoPostCurrentUpdates(0);};
     virtual void DoPostCurrentUpdates(int threadID);
 
-    void DoImagVoltPhaseUpdates();
-    void DoRealVoltPhaseUpdates();
-    void DoImagCurrPhaseUpdates();
-    void DoRealCurrPhaseUpdates();
+    void DoVoltPhaseUpdates();
+    void DoCurrPhaseUpdates();
     void Apply2Voltages();
 
     void Apply2Current();
@@ -71,8 +69,8 @@ protected:
     unsigned int m_LineNr;
     int m_LineNr_Shift;
     unsigned int m_numLines[3];
-    bool direction_is_pbc[3];
-    FDTD_FLOAT *k_pbc;
+    bool direction_is_pbc[6];
+    FDTD_FLOAT *pbc_phase;
     bool shift[3];
     unsigned int pos[3];
 
@@ -83,10 +81,8 @@ protected:
     FDTD_FLOAT**** curr_im; // imaginary part of the complex current
     FDTD_FLOAT sin_kx;
     FDTD_FLOAT sin_ky;
-    FDTD_FLOAT sin_kxy;
     FDTD_FLOAT cos_kx;
     FDTD_FLOAT cos_ky;
-    FDTD_FLOAT cos_kxy;
     FDTD_FLOAT curr_im_outside[3] = {0};
     FDTD_FLOAT curr_outside[3] = {0};
     FDTD_FLOAT volt_im_outside[3] = {0};

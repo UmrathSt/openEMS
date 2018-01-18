@@ -286,11 +286,11 @@ bool Operator::SnapToMesh(const double* dcoord, unsigned int* uicoord, bool dual
 	return ok;
 }
 
-void Operator::Set_k_pbc(int idx, FDTD_FLOAT k) {
-    cout << "operator.cpp: Set_k_pbc was called to set k_pbc["<< idx << "] =" << k << endl;
-    k_pbc[idx] = k;
-    dir_is_pbc[2*idx] = true;
-    dir_is_pbc[2*idx+1] = true;
+void Operator::Set_pbc_phase(int idx, FDTD_FLOAT phase) {
+    std::cout << "operator.cpp: Set_pbc_phase was called to set pbc_phase["<< idx << "] =" << phase << std::endl;
+    pbc_phase[idx] = phase;
+    dir_is_pbc[2*idx] = true; // lower boundary
+    dir_is_pbc[2*idx+1] = true; // upper boundary
 }
 int Operator::SnapBox2Mesh(const double* start, const double* stop, unsigned int* uiStart, unsigned int* uiStop, bool dualMesh, bool fullMesh, int SnapMethod, bool* bStartIn, bool* bStopIn) const
 {
@@ -1039,13 +1039,12 @@ int Operator::CalcECOperator( DebugFlags debugFlags )
 
 
 
-	//make an exception for BC == -1
+    //make an exception for BC == -1 and for PBCs
     for (int n=0; n<6; ++n){
         if ((m_BC[n]==-1))
 			PEC[n] = false;
         if ((m_BC[n]==4)){
             PEC[n] = false;
-            std::cout << "Didn't set operator on PBC surfaces to PEC" << std::endl;
         }
     }
 	ApplyElectricBC(PEC);
@@ -1075,7 +1074,6 @@ int Operator::CalcECOperator( DebugFlags debugFlags )
 		else
 			++it;
 	}
-
 	if (debugFlags & debugMaterial)
 		DumpMaterial2File( "material_dump" );
 	if (debugFlags & debugOperator)

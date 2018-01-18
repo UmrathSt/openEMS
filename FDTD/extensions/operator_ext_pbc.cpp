@@ -28,39 +28,97 @@
 #include "tinyxml.h" // for reading k_pbc out out the geometry.xml file
 
 
-Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op) : Operator_Extension(op)
+Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, FDTD_FLOAT* k_pbc, bool* dir_is_pbc) : Operator_Extension(op)
 {
-    Init();
-    std::cout << "#-#-#-#" << std::endl;
-    std::cout << "constructor" << std::endl;
-    std::cout << "#-#-#-#" << std::endl;
+    dir_is_pbc = dir_is_pbc;
+    k_pbc = k_pbc;
 
-    apply_PBC_to_operator(m_Op->dir_is_pbc);
+    Init();
 
 }
 Operator_Ext_Pbc::Operator_Ext_Pbc(Operator* op, Operator_Ext_Pbc* op_ext) : Operator_Extension(op, op_ext)
 {
     Init();
-    std::cout << "#-#-#-#" << std::endl;
-    std::cout << "copy constructor" << std::endl;
-    std::cout << "#-#-#-#" << std::endl;
-    apply_PBC_to_operator(m_Op->dir_is_pbc);
+
 }
-Operator_Ext_Pbc::~Operator_Ext_Pbc(){}
+Operator_Ext_Pbc::~Operator_Ext_Pbc(){
+    Delete_N_3DArray(VV,m_numLines);
+    Delete_N_3DArray(VI,m_numLines);
+    Delete_N_3DArray(IV,m_numLines);
+    Delete_N_3DArray(II,m_numLines);
+    VV=VI=IV=II=0;
+}
 
 void Operator_Ext_Pbc::copy_operator_vals()
 {
-    VV = m_Op->vv;
-    VI = m_Op->vi;
-    IV = m_Op->iv;
-    II = m_Op->ii;
-
+    for(unsigned int n=0; n<3; ++n){
+        for(int i=0; i<m_numLines[0]; i++){
+            for(int j=0; j<m_numLines[1]; j++){
+                for(int k=0; k<m_numLines[2]; k++){
+                    VV[n][i][j][k] = m_Op->vv[n][i][j][k];
+                    VI[n][i][j][k] = m_Op->vi[n][i][j][k];
+                    IV[n][i][j][k] = m_Op->iv[n][i][j][k];
+                    II[n][i][j][k] = m_Op->ii[n][i][j][k];
+                }
+            }
+        }
+    }
 };
+
+void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
+{
+
+    for(int i=0; i<3; ++i)
+    {
+        m_ny   = i;
+        m_nyP  = (i+1)%3;
+        m_nyPP = (i+2)%3;
+        FDTD_FLOAT pp_val = 1;
+        FDTD_FLOAT pq_val = 0;
+        // set the operator to zero/one such that the updates at the boundary
+        // are not done by the engine, but can be treated separately in engine_ext_pbc.cpp
+        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP])
+        {
+            for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]; ++pos[m_nyPP])
+            {
+                if(dirs[2*i]){ // The voltages have missing current neighbours at the lower boundary
+                    pos[m_ny] = 0;
+                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],  pp_val);
+                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], pp_val);
+                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2], pp_val);
+                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2],  pq_val);
+                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2],  pq_val);
+                    m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
+                }
+                 if(dirs[2*i+1]){ // The currents have missing voltage neighbours at the higher boundaries
+                    pos[m_ny] = m_numLines[m_ny]-1; // and are therefore updated separately
+                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2],  pp_val);
+                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
+                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2], pp_val);
+                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2],  pq_val);
+                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2],  pq_val);
+                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], pq_val);
+                }
+            }
+        }
+        std::cout << "apply_PBC_to_operator: VI[" << i << "][0,0,10]=" << VI[i][0][0][10] << std::endl;
+        std::cout << "apply_PBC_to_operator: VI[" << i << "][1,0,10]=" << VI[i][1][0][10] << std::endl;
+        std::cout << "apply_PBC_to_operator: VI[" << i << "][0,1,10]=" << VI[i][0][1][10] << std::endl;
+        std::cout << "apply_PBC_to_operator: VI[" << i << "][1,1,10]=" << VI[i][1][1][10] << std::endl;
+        std::cout << "vs" << std::endl;
+        std::cout << "apply_PBC_to_operator: vi[" << i << "][0,0,10]=" << m_Op->vi[i][0][0][10] << std::endl;
+        std::cout << "apply_PBC_to_operator: vi[" << i << "][1,0,10]=" << m_Op->vi[i][1][0][10] << std::endl;
+        std::cout << "apply_PBC_to_operator: vi[" << i << "][0,1,10]=" << m_Op->vi[i][0][1][10] << std::endl;
+        std::cout << "apply_PBC_to_operator: vi[" << i << "][1,1,10]=" << m_Op->vi[i][1][1][10] << std::endl;
+
+        std::cout << "--------------" << std::endl;
+        std::cout << "#######" << std::endl;
+    }
+}
 
 
 void Operator_Ext_Pbc::Init()
 {
-    copy_operator_vals();
     m_Exc = m_Op->GetExcitationSignal();
     m_numLines[0]= m_Op->GetNumberOfLines(0);
     m_numLines[1]= m_Op->GetNumberOfLines(1);
@@ -69,7 +127,14 @@ void Operator_Ext_Pbc::Init()
     VI = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
     IV = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
     II = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
-    std::cout << "I initialized the Operator_Ext_Pbc and created VV of (" << 3 << "," << m_numLines[0] << "," << m_numLines[1] << "," << m_numLines[2] << ")" << std::endl;
+
+    if(!operator_already_copied){
+        std::cout << "CALLED from" << std::endl;
+        operator_already_copied = true;
+        copy_operator_vals();
+        apply_PBC_to_operator(m_Op->dir_is_pbc);
+    }
+
     Operator_Extension::Init();
     Volt_delay = 0;
     Volt_amp_sin = 0; // time dependence
@@ -81,7 +146,6 @@ void Operator_Ext_Pbc::Init()
     Curr_amp_cos = 0;
     Curr_dir = 0;
     Curr_Count = 0;
-
     for (int n=0; n<3; ++n)
     {
         Volt_index[n] = 0;
@@ -89,6 +153,7 @@ void Operator_Ext_Pbc::Init()
         Volt_Count_Dir[n] = 0;
         Curr_Count_Dir[n] = 0;
     }
+
     BuildExtension();
 }
 
@@ -126,49 +191,6 @@ void Operator_Ext_Pbc::Reset()
         Curr_Count_Dir[n] = 0;
     }
 }
-void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
-{
-
-    for(int i=0; i<3; ++i)
-    {
-        m_ny   = dirs[i];
-        m_nyP  = (dirs[i]+1)%3;
-        m_nyPP = (dirs[i]+2)%3;
-        FDTD_FLOAT pp_val = 1;
-        FDTD_FLOAT pq_val = 0;
-        // set the operator to zero/one such that the updates at the boundary
-        // are not done by the engine, but can be treated separately in engine_ext_pbc.cpp
-        for (pos[m_nyP]=0; pos[m_nyP]<m_numLines[m_nyP]; ++pos[m_nyP])
-        {
-            for (pos[m_nyPP]=0; pos[m_nyPP]<m_numLines[m_nyPP]; ++pos[m_nyPP])
-            {
-                if(dirs[2*i]){ // The voltages have missing current neighbours at the lower boundary
-                    pos[m_ny] = 0;
-
-                    m_Op->SetVV(m_ny, pos[0], pos[1], pos[2],   pp_val);
-                    m_Op->SetVV(m_nyP, pos[0], pos[1], pos[2],  pp_val);
-                    m_Op->SetVV(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetVI(m_ny, pos[0], pos[1], pos[2],   pq_val);
-                    m_Op->SetVI(m_nyP, pos[0], pos[1], pos[2],  pq_val);
-                    m_Op->SetVI(m_nyPP, pos[0], pos[1], pos[2], pq_val);
-                }
-                 if(dirs[2*i+1]){ // The currents have missing voltage neighbours at the higher boundaries
-                    pos[m_ny] = m_numLines[dirs[i]]-1; // and are therefore updated separately
-
-                    m_Op->SetII(m_ny, pos[0], pos[1], pos[2],   pp_val);
-                    m_Op->SetII(m_nyP, pos[0], pos[1], pos[2],  pp_val);
-                    m_Op->SetII(m_nyPP, pos[0], pos[1], pos[2], pp_val);
-                    m_Op->SetIV(m_ny, pos[0], pos[1], pos[2],   pq_val);
-                    m_Op->SetIV(m_nyP, pos[0], pos[1], pos[2],  pq_val);
-                    m_Op->SetIV(m_nyPP, pos[0], pos[1], pos[2], pq_val);
-                }
-            }
-        }
-    }
-}
-
-
-
 
 Engine_Extension* Operator_Ext_Pbc::CreateEngineExtention()
 {
@@ -181,15 +203,15 @@ Operator_Extension* Operator_Ext_Pbc::Clone(Operator* op)
         return NULL;
     return new Operator_Ext_Pbc(op, this);
 }
-void Operator_Ext_Pbc::Set_k_pbc(FDTD_FLOAT *k){
+void Operator_Ext_Pbc::Set_pbc_phase(FDTD_FLOAT *phase){
     for (int i=0; i<3; ++i){
-        k_pbc[i] = k[i];
+        pbc_phase[i] = phase[i];
     }
 }
 
 void Operator_Ext_Pbc::Set_pbc_dirs(bool *dirs){
     for (int i=0; i<6; ++i){
-        pbc_dirs[i] = dirs[i];
+        dir_is_pbc[i] = dirs[i];
     }
 }
 
@@ -222,7 +244,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
     ContinuousStructure* CSX = m_Op->GetGeometryCSX();
     TiXmlElement* openEMSxml = doc.FirstChildElement("openEMS");
     TiXmlElement* FDTD_Opts = openEMSxml->FirstChildElement("FDTD");
-    TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundary");
+    TiXmlElement* PBC = FDTD_Opts->FirstChildElement("PeriodicBoundaryPhases");
     double dhelp;
     if(PBC == NULL)
     {
@@ -230,12 +252,11 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
         exit(-3);
     }
     else{
-        string k_pbc_names[] = {"k_pbc_x", "k_pbc_y", "k_pbc_z"};
+        string k_pbc_names[] = {"pbc_phase_x", "pbc_phase_y", "pbc_phase:_z"};
         for(int i=0; i<3; ++i){
            dhelp = 0;
            if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
-                k_pbc[i] = (FDTD_FLOAT)(dhelp);
-                cout << "operator_ext_pbc.cpp: setting k_pbc["<<i<<"]="<<k_pbc[i]<<" worked.\n" << endl;
+                pbc_phase[i] = (FDTD_FLOAT)(dhelp);
                 }
         }
     }
@@ -457,6 +478,6 @@ void Operator_Ext_Pbc::ShowStat(ostream &ostr)  const
     cout << "Cos Voltage excitations\t: " << Volt_Count    << "\t (" << Volt_Count_Dir[0] << ", " << Volt_Count_Dir[1] << ", " << Volt_Count_Dir[2] << ")" << endl;
     cout << "Sin Current excitations\t: " << Curr_Count << "\t (" << Curr_Count_Dir[0] << ", " << Curr_Count_Dir[1] << ", " << Curr_Count_Dir[2] << ")" << endl;
     cout << "Cos Current excitations\t: " << Curr_Count << "\t (" << Curr_Count_Dir[0] << ", " << Curr_Count_Dir[1] << ", " << Curr_Count_Dir[2] << ")" << endl;
-    cout << "Excitation Length (TS)\t: " << m_Exc->GetLength() << endl;
-    cout << "Excitation Length (s)\t: " << m_Exc->GetLength()*m_Op->GetTimestep() << endl;
+    cout << "PBCExcitation Length (TS)\t: " << m_Exc->GetLength() << endl;
+    cout << "PBCExcitation Length (s)\t: " << m_Exc->GetLength()*m_Op->GetTimestep() << endl;
 }

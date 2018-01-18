@@ -14,12 +14,13 @@
 *	You should have received a copy of the GNU General Public License
 *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <complex>
+#include <cmath>
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#define FDTD_CFLOAT std::complex<float> // For the Voltages and currents
 #define FDTD_FLOAT float
-
 #define __EPS0__ 8.85418781762e-12
 #define __MUE0__ 1.256637062e-6
 #define __C0__ 299792458

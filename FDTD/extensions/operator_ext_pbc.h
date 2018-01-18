@@ -10,7 +10,7 @@ class Operator_Ext_Pbc : public Operator_Extension
     friend class Engine_Ext_Pbc;
     friend class openEMS;
 public:
-    Operator_Ext_Pbc(Operator* op);
+    Operator_Ext_Pbc(Operator* op, FDTD_FLOAT* pbc_phase, bool* dir_is_pbc);
     ~Operator_Ext_Pbc();
     inline virtual FDTD_FLOAT GetVV(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->GetVV(n,x,y,z); };
     inline virtual FDTD_FLOAT GetVI(unsigned int n, unsigned int x, unsigned int y, unsigned int z ) const { return m_Op->GetVI(n,x,y,z); };
@@ -33,7 +33,7 @@ public:
             vector<FDTD_FLOAT> const& volt_vExcit_cos, vector<unsigned int> const& volt_vDelay, vector<unsigned int> const& volt_vDir );
     bool Build_PBCExcitation();
     void apply_PBC_to_operator(bool *dirs);
-    void Set_k_pbc(FDTD_FLOAT *k_pbc);
+    void Set_pbc_phase(FDTD_FLOAT *pbc_phase);
     void Set_pbc_dirs(bool *dirs);
     void copy_operator_vals();
 
@@ -54,10 +54,9 @@ protected:
     unsigned int pos[3];
     int m_ny;
     int m_nyP,m_nyPP;
-    bool pbc_dirs[6] = {0};
-    FDTD_FLOAT k_pbc[3] = {0};
-    bool pbc_used = true;
-
+    bool dir_is_pbc[6] = {0};
+    FDTD_FLOAT pbc_phase[3] = {0};
+    bool operator_already_copied = false;
     Excitation* m_Exc;
     //E-Field/voltage Excitation
     unsigned int Volt_Count;
@@ -78,10 +77,10 @@ protected:
     unsigned int* Curr_delay;
 
     // desc
-    FDTD_FLOAT**** VV;
-    FDTD_FLOAT**** II;
-    FDTD_FLOAT**** VI;
-    FDTD_FLOAT**** IV;
+    FDTD_FLOAT**** VV = NULL;
+    FDTD_FLOAT**** II = NULL;
+    FDTD_FLOAT**** VI = NULL;
+    FDTD_FLOAT**** IV = NULL;
 
 };
 
