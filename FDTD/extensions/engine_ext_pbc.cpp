@@ -117,15 +117,16 @@ void Engine_Ext_Pbc::DoCurrPhaseUpdates(){
                     }
         pos[0] = maxX;
         pos[1] = maxY;
-        volt_outside[2] =    cos_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]) - sin_ky*volt_im[2][pos[0]][0][pos[2]];
         volt_im_outside[2] = cos_ky*volt_im[2][pos[0]][0][pos[2]]     + sin_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]);
+        volt_outside[2] =    cos_ky*m_Eng->GetVolt(2,pos[0],0,pos[2]) - sin_ky*volt_im[2][pos[0]][0][pos[2]];
         // for x updates
         m_Eng->curr[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
         m_Eng->curr[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2])* ( m_Eng->volt[2][pos[0]][pos[1]][pos[2]] - volt_outside[2]- m_Eng->volt[1][pos[0]][pos[1]][pos[2]] + m_Eng->volt[1][pos[0]][pos[1]][pos[2]+1]);
         curr_im[0][pos[0]][pos[1]][pos[2]]     *= m_Op_Pbc->GetIIedge(0,pos[0],pos[1],pos[2]);
         curr_im[0][pos[0]][pos[1]][pos[2]]     += m_Op_Pbc->GetIVedge(0,pos[0],pos[1],pos[2])* (volt_im[2][pos[0]][pos[1]][pos[2]] - volt_im_outside[2] - volt_im[1][pos[0]][pos[1]][pos[2]] + volt_im[1][pos[0]][pos[1]][pos[2]+1]);
+        volt_im_outside[2] = cos_kx*volt_im[2][0][pos[1]][pos[2]]     + sin_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]);
         volt_outside[2] =    cos_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]) - sin_kx*volt_im[2][0][pos[1]][pos[2]];
-        volt_im_outside[2] = cos_kx*volt_im[2][0][pos[1]][pos[2]]  + sin_kx*m_Eng->GetVolt(2,0,pos[1],pos[2]);
+
         // for y updates
         m_Eng->curr[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetIIedge(1,pos[0],pos[1],pos[2]);
         m_Eng->curr[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetIVedge(1,pos[0],pos[1],pos[2])* ( m_Eng->volt[0][pos[0]][pos[1]][pos[2]] - m_Eng->volt[0][pos[0]][pos[1]][pos[2]+1] - m_Eng->volt[2][pos[0]][pos[1]][pos[2]] + volt_outside[2]);
@@ -207,15 +208,15 @@ void Engine_Ext_Pbc::DoVoltPhaseUpdates()
         pos[1] = 0;
         pos[0] = 0;
         // for x updates
-        curr_outside[2] =    cos_ky*curr_im[2][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
         curr_im_outside[2] = cos_ky*curr_im[2][pos[0]][maxY][pos[2]] - sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
+        curr_outside[2] =    cos_ky*curr_im[2][pos[0]][maxY][pos[2]] + sin_ky*m_Eng->GetCurr(2,pos[0],maxY,pos[2]);
         m_Eng->volt[0][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(0,pos[0],pos[1],pos[2]);
         m_Eng->volt[0][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(0,pos[0],pos[1],pos[2])* ( m_Eng->curr[2][pos[0]][pos[1]][pos[2]] - curr_outside[2] - m_Eng->curr[1][pos[0]][pos[1]][pos[2]] + m_Eng->curr[1][pos[0]][pos[1]][pos[2]-shift]);
         volt_im[0][pos[0]][pos[1]][pos[2]] *=     m_Op_Pbc->GetVVedge(0,pos[0],pos[1],pos[2]);
         volt_im[0][pos[0]][pos[1]][pos[2]] +=     m_Op_Pbc->GetVIedge(0,pos[0],pos[1],pos[2])* ( curr_im[2][pos[0]][pos[1]][pos[2]] - curr_im_outside[2] - curr_im[1][pos[0]][pos[1]][pos[2]] + curr_im[1][pos[0]][pos[1]][pos[2]-shift]);
         // for y updates
-        curr_outside[2] =    cos_kx*curr_im[2][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
-        curr_im_outside[2] = cos_kx*curr_im[2][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
+         curr_im_outside[2] = cos_kx*curr_im[2][maxX][pos[1]][pos[2]] - sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
+        curr_outside[2] =     cos_kx*curr_im[2][maxX][pos[1]][pos[2]] + sin_kx*m_Eng->GetCurr(2,maxX,pos[1],pos[2]);
         m_Eng->volt[1][pos[0]][pos[1]][pos[2]] *= m_Op_Pbc->GetVVedge(1,pos[0],pos[1],pos[2]);
         m_Eng->volt[1][pos[0]][pos[1]][pos[2]] += m_Op_Pbc->GetVIedge(1,pos[0],pos[1],pos[2])* ( m_Eng->curr[0][pos[0]][pos[1]][pos[2]] - m_Eng->curr[0][pos[0]][pos[1]][pos[2]-shift] - m_Eng->curr[2][pos[0]][pos[1]][pos[2]] + curr_outside[2]);
         volt_im[1][pos[0]][pos[1]][pos[2]] *=     m_Op_Pbc->GetVVedge(1,pos[0],pos[1],pos[2]);

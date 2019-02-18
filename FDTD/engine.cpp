@@ -113,10 +113,10 @@ void Engine::UpdateVoltages(unsigned int startX, unsigned int numX)
 
 	pos[0] = startX;
 	//voltage updates
-	for (unsigned int posX=0; posX<numX; ++posX)
+    for (unsigned int posX=0; posX<numX; ++posX)
 	{
         shift[0]=pos[0]; // 1 for all but the zeroth grid line
-		for (pos[1]=0; pos[1]<numLines[1]; ++pos[1])
+        for (pos[1]=0; pos[1]<numLines[1]; ++pos[1])
 		{
 			shift[1]=pos[1];
 			for (pos[2]=0; pos[2]<numLines[2]; ++pos[2])

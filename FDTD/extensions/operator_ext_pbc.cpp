@@ -101,17 +101,6 @@ void Operator_Ext_Pbc::apply_PBC_to_operator(bool *dirs)
                 }
             }
         }
-        std::cout << "apply_PBC_to_operator: VI[" << i << "][0,0,10]=" << VI[i][0][0][10] << std::endl;
-        std::cout << "apply_PBC_to_operator: VI[" << i << "][1,0,10]=" << VI[i][1][0][10] << std::endl;
-        std::cout << "apply_PBC_to_operator: VI[" << i << "][0,1,10]=" << VI[i][0][1][10] << std::endl;
-        std::cout << "apply_PBC_to_operator: VI[" << i << "][1,1,10]=" << VI[i][1][1][10] << std::endl;
-        std::cout << "vs" << std::endl;
-        std::cout << "apply_PBC_to_operator: vi[" << i << "][0,0,10]=" << m_Op->vi[i][0][0][10] << std::endl;
-        std::cout << "apply_PBC_to_operator: vi[" << i << "][1,0,10]=" << m_Op->vi[i][1][0][10] << std::endl;
-        std::cout << "apply_PBC_to_operator: vi[" << i << "][0,1,10]=" << m_Op->vi[i][0][1][10] << std::endl;
-        std::cout << "apply_PBC_to_operator: vi[" << i << "][1,1,10]=" << m_Op->vi[i][1][1][10] << std::endl;
-        std::cout << "--------------" << std::endl;
-        std::cout << "#######" << std::endl;
 
     }
 }
@@ -129,7 +118,6 @@ void Operator_Ext_Pbc::Init()
     II = Create_N_3DArray<FDTD_FLOAT>(m_numLines);
 
     if(!operator_already_copied){
-        std::cout << "CALLED from" << std::endl;
         operator_already_copied = true;
         copy_operator_vals();
         apply_PBC_to_operator(m_Op->dir_is_pbc);
@@ -257,6 +245,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
            dhelp = 0;
            if (PBC->QueryDoubleAttribute(k_pbc_names[i],&dhelp)==TIXML_SUCCESS){
                 pbc_phase[i] = (FDTD_FLOAT)(dhelp);
+                cout << "added phase information for direction " << i << " phase = " << pbc_phase[i] << endl;
                 }
         }
     }
@@ -282,7 +271,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
 
     if (vec_prop.size()==0)
     {
-        cerr << "Operator::CalcFieldExcitation: Warning, no PBC excitation properties found" << endl;
+        cerr << "Operator_Ext_PBC::BuildExcitation: Warning, no PBC excitation properties found" << endl;
         return false;
     }
 
@@ -313,6 +302,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                         prop = vec_prop.at(p);
                         elec = prop->ToPBCExcitation();
                         if (elec==NULL){
+                            std::cout << "operator_ext_pbc.cpp: Warning, elec==NULL, therefore reading the exciation went wrong.\n" << std::endl;
                             continue;
                         }
                         if (prop->CheckCoordInPrimitive(volt_coord,priority,true))
@@ -339,6 +329,7 @@ bool Operator_Ext_Pbc::Build_PBCExcitation()
                                 }
                             }
                     }
+
                     }
                 }
 
@@ -421,8 +412,8 @@ void Operator_Ext_Pbc::setupVoltageExcitation( vector<unsigned int> const volt_v
     Volt_dir = new unsigned short[Volt_Count];
 
 //	cerr << "Excitation::setupVoltageExcitation(): Number of voltage excitation points: " << Volt_Count << endl;
-//	if (Volt_Count==0)
-//		cerr << "No E-Field/voltage excitation found!" << endl;
+    if (Volt_Count==0)
+        cerr << "No PBC-E-Field/voltage excitation found!" << endl;
     for (int n=0; n<3; n++)
         for (unsigned int i=0; i<Volt_Count; i++)
             Volt_index[n][i] = volt_vIndex[n].at(i);
@@ -456,8 +447,8 @@ void Operator_Ext_Pbc::setupCurrentExcitation( vector<unsigned int> const curr_v
     Curr_dir = new unsigned short[Curr_Count];
 
 //	cerr << "Excitation::setupCurrentExcitation(): Number of current excitation points: " << Curr_Count << endl;
-//	if (Curr_Count==0)
-//		cerr << "No H-Field/current excitation found!" << endl;
+    if (Curr_Count==0)
+        cerr << "No PBC-H-Field/current excitation found!" << endl;
     for (int n=0; n<3; ++n)
         for (unsigned int i=0; i<Curr_Count; i++)
             Curr_index[n][i] = curr_vIndex[n].at(i);

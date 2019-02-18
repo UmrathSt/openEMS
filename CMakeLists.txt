@@ -86,8 +86,9 @@ INCLUDE_DIRECTORIES( ${FPARSER_ROOT_DIR}/include )
 
 # CSXCAD
 # $ cmake -D CSXCAD_ROOT_DIR=~/opt/openEMS .
-SET(CSXCAD_ROOT_DIR ~/Arbeit/openEMS_development/CSXCAD)
-SET(CSXCAD_INCLUDE_DIR ~/Arbeit/openEMS_development/CSXCAD/src)
+SET(CSXCAD_ROOT_DIR ~/Arbeit/repositories/CSXCAD)
+# SET(CSXCAD_INCLUDE_DIR ~/Arbeit/openEMS_development/CSXCAD/src) # at OP
+SET(CSXCAD_INCLUDE_DIR ~/Arbeit/repositories/CSXCAD/src/) # at XEON
 
 message("I USED THE NEW PATH INFORMATION!!!")
 find_library(CSXCAD_LIBRARIES 
